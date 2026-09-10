@@ -12,6 +12,7 @@ import {
   X,
   Eye,
   SlidersHorizontal,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { Lead, LeadStatus } from '../types';
 import { STATUSES, TEAM_MEMBERS } from '../data/initialData';
@@ -20,6 +21,7 @@ import { fmt, openWhatsApp, makePhoneCall, getFollowupTiming } from '../utils/fo
 interface LeadsViewProps {
   leads: Lead[];
   onAddNewLead: () => void;
+  onImportExcel?: () => void;
   onEditLead: (id: number) => void;
   onDeleteLead: (id: number) => void;
   onUpdateLeadStatus: (id: number, newStatus: LeadStatus) => void;
@@ -32,6 +34,7 @@ interface LeadsViewProps {
 export const LeadsView: React.FC<LeadsViewProps> = ({
   leads,
   onAddNewLead,
+  onImportExcel,
   onEditLead,
   onDeleteLead,
   onUpdateLeadStatus,
@@ -107,7 +110,20 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {onImportExcel && (
+            <button
+              id="btn-leads-import-excel"
+              type="button"
+              onClick={onImportExcel}
+              className="flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-xs transition-all cursor-pointer hover:shadow-emerald-500/25 active:scale-95"
+              title="Import leads from Excel spreadsheet or CSV file"
+            >
+              <FileSpreadsheet className="w-4 h-4" />
+              <span>Import Excel</span>
+            </button>
+          )}
+
           <button
             id="btn-leads-add-primary"
             type="button"

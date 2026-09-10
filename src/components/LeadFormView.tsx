@@ -7,23 +7,50 @@ import {
   COMMON_PROJECTS,
   COMMON_SIZES,
 } from '../data/initialData';
-import { Sparkles, ArrowLeft, Save, RotateCcw, AlertCircle, Lock, User } from 'lucide-react';
+import {
+  Sparkles,
+  ArrowLeft,
+  Save,
+  RotateCcw,
+  AlertCircle,
+  Lock,
+  User,
+  FileSpreadsheet,
+  UserPlus,
+  UploadCloud,
+} from 'lucide-react';
+import { ExcelImportView } from './ExcelImportView';
 
 interface LeadFormViewProps {
   editLeadData?: Lead | null;
   currentUser?: AuthUser | null;
+  existingLeads?: Lead[];
+  initialMode?: 'manual' | 'excel';
   onSaveLead: (lead: Omit<Lead, 'id'> & { id?: number }) => void;
+  onBulkImportLeads?: (leads: Lead[]) => void;
   onCancel: () => void;
 }
 
 export const LeadFormView: React.FC<LeadFormViewProps> = ({
   editLeadData,
   currentUser,
+  existingLeads = [],
+  initialMode = 'manual',
   onSaveLead,
+  onBulkImportLeads,
   onCancel,
 }) => {
   const isEditing = Boolean(editLeadData && editLeadData.id);
   const isUserRole = currentUser?.role === 'user';
+  const [activeMode, setActiveMode] = useState<'manual' | 'excel'>(
+    isEditing ? 'manual' : initialMode
+  );
+
+  useEffect(() => {
+    if (!isEditing && initialMode) {
+      setActiveMode(initialMode);
+    }
+  }, [initialMode, isEditing]);
 
   // Form states matching original CRM fields
   const [name, setName] = useState('');
@@ -110,10 +137,32 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
     });
   };
 
+  // If in Excel import mode and not editing, show the Excel importer
+  if (!isEditing && activeMode === 'excel') {
+    return (
+      <ExcelImportView
+        existingLeads={existingLeads}
+        currentUser={currentUser}
+        onImportCompleted={(imported) => {
+          if (onBulkImportLeads) {
+            onBulkImportLeads(imported);
+          }
+        }}
+        onCancel={() => {
+          if (initialMode === 'excel') {
+            onCancel();
+          } else {
+            setActiveMode('manual');
+          }
+        }}
+      />
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+      {/* Header & Mode Switcher */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-200">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -135,12 +184,68 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
           </div>
         </div>
 
-        {isEditing && (
+        {/* Tab switch for New Lead (Manual vs Excel) */}
+        {!isEditing ? (
+          <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setActiveMode('manual')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                activeMode === 'manual'
+                  ? 'bg-white text-blue-700 shadow-2xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <UserPlus className="w-3.5 h-3.5" />
+              <span>Single Lead Form</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveMode('excel')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                activeMode === 'excel'
+                  ? 'bg-emerald-600 text-white shadow-2xs'
+                  : 'text-emerald-700 hover:bg-emerald-50'
+              }`}
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+              <span>एक्सेल से इम्पोर्ट करें</span>
+            </button>
+          </div>
+        ) : (
           <span className="text-xs font-semibold px-2.5 py-1 bg-amber-100 text-amber-800 border border-amber-200 rounded-full">
             Editing Mode
           </span>
         )}
       </div>
+
+      {/* Quick Excel Banner for users on manual form */}
+      {!isEditing && (
+        <div className="bg-linear-to-r from-emerald-50 to-teal-50 border border-emerald-200/80 rounded-xl p-3 sm:px-4 sm:py-3 flex items-center justify-between gap-3 flex-wrap shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <FileSpreadsheet className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-xs sm:text-sm font-bold text-emerald-900">
+                बड़ी संख्या में लीड्स हैं? (Bulk Leads in Excel?)
+              </div>
+              <div className="text-[11px] text-emerald-700">
+                एक-एक करके भरने के बजाय पूरी एक्सेल (.xlsx) या CSV शीट सीधे CRM में इम्पोर्ट करें।
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setActiveMode('excel')}
+            className="px-3.5 py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all shadow-2xs hover:shadow-emerald-600/20 active:scale-95 cursor-pointer flex items-center gap-1.5 ml-auto sm:ml-0"
+          >
+            <UploadCloud className="w-3.5 h-3.5" />
+            <span>एक्सेल शीट इम्पोर्ट खोलें</span>
+          </button>
+        </div>
+      )}
 
       {/* Error alert if validation fails */}
       {errorMessage && (

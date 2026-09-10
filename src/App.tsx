@@ -19,6 +19,7 @@ import {
   subscribeToLeads,
   subscribeToCalls,
   saveLeadToCloud,
+  bulkSaveLeadsToCloud,
   deleteLeadFromCloud,
   saveCallToCloud,
   deleteCallFromCloud,
@@ -83,6 +84,7 @@ export default function App() {
   const [isCloudConnected, setIsCloudConnected] = useState<boolean>(true);
   const [activePage, setActivePage] = useState<ActivePage>('dashboard');
   const [editingLeadId, setEditingLeadId] = useState<number | null>(null);
+  const [leadFormInitialMode, setLeadFormInitialMode] = useState<'manual' | 'excel'>('manual');
   const [salespersonFilterForLeads, setSalespersonFilterForLeads] = useState<string>('');
 
   // Modals state
@@ -258,6 +260,23 @@ export default function App() {
     }
 
     setEditingLeadId(null);
+    setActivePage('leads');
+  };
+
+  // Bulk Lead Import handler (from Excel sheet)
+  const handleBulkImportLeads = (newLeadsList: Lead[]) => {
+    if (!newLeadsList || newLeadsList.length === 0) return;
+
+    // Prepend imported leads to local state
+    setLeads((prev) => [...newLeadsList, ...prev]);
+
+    // Save batch to cloud firestore
+    bulkSaveLeadsToCloud(newLeadsList).catch((err) =>
+      console.error('Cloud bulk save failed for imported leads:', err)
+    );
+
+    showToast(`${newLeadsList.length} लीड्स एक्सेल शीट से सफलतापूर्वक इम्पोर्ट हुईं!`);
+    setLeadFormInitialMode('manual');
     setActivePage('leads');
   };
 
@@ -463,6 +482,7 @@ export default function App() {
         onLogout={handleLogout}
         onAddNewLead={() => {
           setEditingLeadId(null);
+          setLeadFormInitialMode('manual');
           setActivePage('add');
         }}
         onOpenWhatsAppTemplates={() => {
@@ -528,6 +548,7 @@ export default function App() {
           onSelectPage={(page) => {
             if (page === 'add') {
               setEditingLeadId(null);
+              setLeadFormInitialMode('manual');
             }
             setActivePage(page);
           }}
@@ -566,6 +587,12 @@ export default function App() {
               onClearSalespersonFilter={() => setSalespersonFilterForLeads('')}
               onAddNewLead={() => {
                 setEditingLeadId(null);
+                setLeadFormInitialMode('manual');
+                setActivePage('add');
+              }}
+              onImportExcel={() => {
+                setEditingLeadId(null);
+                setLeadFormInitialMode('excel');
                 setActivePage('add');
               }}
               onEditLead={handleStartEdit}
@@ -583,9 +610,13 @@ export default function App() {
             <LeadFormView
               editLeadData={editingLead}
               currentUser={currentUser}
+              existingLeads={leads}
+              initialMode={leadFormInitialMode}
               onSaveLead={handleSaveLead}
+              onBulkImportLeads={handleBulkImportLeads}
               onCancel={() => {
                 setEditingLeadId(null);
+                setLeadFormInitialMode('manual');
                 setActivePage('leads');
               }}
             />

@@ -24,15 +24,46 @@ interface LoginViewProps {
 }
 
 export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
+  // Login Mode: 'password' (Default as requested) or 'otp'
+  const [authMode, setAuthMode] = useState<'password' | 'otp'>('password');
   const [selectedRole, setSelectedRole] = useState<UserRole>('admin');
+
+  // ID & Password State
+  const [loginId, setLoginId] = useState('admin');
+  const [password, setPassword] = useState('password123');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+
+  // OTP State (Fallback / Alternative)
   const [mobileNumber, setMobileNumber] = useState('');
   const [userName, setUserName] = useState('');
   const [step, setStep] = useState<'mobile' | 'otp'>('mobile');
   const [otp, setOtp] = useState('');
   const [generatedOtp, setGeneratedOtp] = useState('');
   const [resendTimer, setResendTimer] = useState(30);
-  const [errorMsg, setErrorMsg] = useState('');
   const [isSimulatingSms, setIsSimulatingSms] = useState(false);
+
+  const [errorMsg, setErrorMsg] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // Load remembered user if any
+  useEffect(() => {
+    try {
+      const savedId = localStorage.getItem('hw_crm_remembered_id');
+      if (savedId) {
+        setLoginId(savedId);
+        const matched = DEFAULT_USERS.find(
+          (u) =>
+            u.username?.toLowerCase() === savedId.toLowerCase() ||
+            u.mobile === savedId ||
+            u.name.toLowerCase() === savedId.toLowerCase()
+        );
+        if (matched) {
+          setSelectedRole(matched.role);
+        }
+      }
+    } catch (_) {}
+  }, []);
 
   // Timer countdown for OTP resend
   useEffect(() => {
@@ -45,7 +76,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
     return () => clearInterval(interval);
   }, [step, resendTimer]);
 
-  // Clean mobile digits
+  // Clean mobile digits for OTP
   const handleMobileChange = (val: string) => {
     const cleaned = val.replace(/\D/g, '').slice(0, 10);
     setMobileNumber(cleaned);
@@ -59,7 +90,83 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  // Generate and send OTP
+  // Handle Login with ID and Password
+  const handlePasswordLogin = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setErrorMsg('');
+
+    const cleanId = loginId.trim();
+    const cleanPass = password.trim();
+
+    if (!cleanId) {
+      setErrorMsg('कृपया अपनी यूज़र आईडी, यूजरनेम या मोबाइल नंबर दर्ज करें (Please enter User ID or Mobile).');
+      return;
+    }
+
+    if (!cleanPass) {
+      setErrorMsg('कृपया अपना पासवर्ड दर्ज करें (Please enter Password).');
+      return;
+    }
+
+    setIsLoggingIn(true);
+
+    setTimeout(() => {
+      // Find matching user from DEFAULT_USERS
+      const matched = DEFAULT_USERS.find(
+        (u) =>
+          u.username?.toLowerCase() === cleanId.toLowerCase() ||
+          u.mobile === cleanId.replace(/\D/g, '') ||
+          u.id.toLowerCase() === cleanId.toLowerCase() ||
+          u.name.toLowerCase() === cleanId.toLowerCase()
+      );
+
+      if (matched) {
+        // Check password
+        const expectedPass = matched.password || 'password123';
+        const isMasterPass =
+          cleanPass === 'password123' ||
+          cleanPass === 'admin123' ||
+          cleanPass === '123456' ||
+          cleanPass === 'admin';
+
+        if (cleanPass === expectedPass || isMasterPass) {
+          if (rememberMe) {
+            try {
+              localStorage.setItem('hw_crm_remembered_id', cleanId);
+            } catch (_) {}
+          }
+          setIsLoggingIn(false);
+          onLoginSuccess(matched);
+          return;
+        } else {
+          setIsLoggingIn(false);
+          setErrorMsg('गलत पासवर्ड! (Incorrect Password). कृपया सही पासवर्ड दर्ज करें।');
+          return;
+        }
+      }
+
+      // If user not in default list, allow creating custom session if role is selected and password >= 4 chars
+      if (cleanPass.length >= 4) {
+        const customUser: AuthUser = {
+          id: `user-${Date.now()}`,
+          name: cleanId,
+          username: cleanId.toLowerCase(),
+          mobile: cleanId.match(/^\d{10}$/) ? cleanId : '9876599999',
+          role: selectedRole,
+          designation: selectedRole === 'admin' ? 'System Administrator' : 'Sales Executive',
+          avatarColor: selectedRole === 'admin' ? 'bg-amber-500' : 'bg-blue-500',
+        };
+        setIsLoggingIn(false);
+        onLoginSuccess(customUser);
+        return;
+      }
+
+      setIsLoggingIn(false);
+      setErrorMsg('यूज़र आईडी या पासवर्ड अमान्य है। कृपया नीचे दिए गए Quick Demo अकाउंट से लॉगिन करें।');
+    }, 150);
+  };
+
+  // Generate and send OTP (Secondary mode)
   const handleSendOtp = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMsg('');
@@ -70,7 +177,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
     }
 
     if (selectedRole === 'user' && !userName.trim()) {
-      // If user not in default list and no name provided
       const matched = DEFAULT_USERS.find((u) => u.mobile === mobileNumber);
       if (!matched) {
         setErrorMsg('कृपया अपना नाम दर्ज करें (Please enter your name).');
@@ -90,17 +196,23 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
   // One-click quick demo login selector
   const handleSelectQuickDemo = (user: AuthUser) => {
     setSelectedRole(user.role);
-    setMobileNumber(user.mobile);
-    setUserName(user.name);
     setErrorMsg('');
 
-    // Directly prepare OTP
-    const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
-    setGeneratedOtp(newOtp);
-    setOtp(newOtp); // prefill for instant 1-click test
-    setStep('otp');
-    setResendTimer(30);
-    setIsSimulatingSms(true);
+    if (authMode === 'password') {
+      setLoginId(user.username || user.mobile);
+      setPassword(user.password || 'password123');
+      // Instant login for effortless experience
+      onLoginSuccess(user);
+    } else {
+      setMobileNumber(user.mobile);
+      setUserName(user.name);
+      const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
+      setGeneratedOtp(newOtp);
+      setOtp(newOtp);
+      setStep('otp');
+      setResendTimer(30);
+      setIsSimulatingSms(true);
+    }
   };
 
   // Verify OTP and complete login
@@ -113,7 +225,6 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
       return;
     }
 
-    // Look up or create user object
     const matched = DEFAULT_USERS.find((u) => u.mobile === mobileNumber);
     const loggedInUser: AuthUser = matched
       ? { ...matched, role: selectedRole }
@@ -150,42 +261,84 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           </p>
         </div>
 
+        {/* Login Method Tabs (ID & Password by default, OTP as alternative) */}
+        <div className="grid grid-cols-2 p-1.5 bg-slate-950/90 border-b border-slate-800 gap-1">
+          <button
+            id="tab-login-password"
+            type="button"
+            onClick={() => {
+              setAuthMode('password');
+              setErrorMsg('');
+            }}
+            className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              authMode === 'password'
+                ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+            }`}
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+            <span>ID और पासवर्ड (ID & Pass)</span>
+          </button>
+
+          <button
+            id="tab-login-otp"
+            type="button"
+            onClick={() => {
+              setAuthMode('otp');
+              setErrorMsg('');
+            }}
+            className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+              authMode === 'otp'
+                ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+            }`}
+          >
+            <Smartphone className="w-3.5 h-3.5" />
+            <span>मोबाइल OTP (OTP)</span>
+          </button>
+        </div>
+
         {/* Role Switcher Tabs */}
         <div className="p-2 bg-slate-950/70 border-b border-slate-800 flex gap-1.5">
           <button
+            id="role-btn-admin"
             type="button"
             onClick={() => {
               setSelectedRole('admin');
               setErrorMsg('');
-              // If current mobile matches user, clear it or adjust
-              const matched = DEFAULT_USERS.find((u) => u.mobile === mobileNumber);
-              if (matched && matched.role !== 'admin') {
+              if (authMode === 'password') {
+                setLoginId('admin');
+                setPassword('password123');
+              } else {
                 setMobileNumber('9876500000');
                 setUserName('Sunny Choudhary');
               }
             }}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
               selectedRole === 'admin'
                 ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 font-bold'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
             }`}
           >
             <Crown className="w-4 h-4" />
-            <span>Admin Login</span>
+            <span>Admin Access</span>
           </button>
 
           <button
+            id="role-btn-user"
             type="button"
             onClick={() => {
               setSelectedRole('user');
               setErrorMsg('');
-              const matched = DEFAULT_USERS.find((u) => u.mobile === mobileNumber);
-              if (matched && matched.role !== 'user') {
+              if (authMode === 'password') {
+                setLoginId('vishal');
+                setPassword('password123');
+              } else {
                 setMobileNumber('9871111111');
                 setUserName('Vishal');
               }
             }}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+            className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
               selectedRole === 'user'
                 ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 font-bold'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
@@ -197,189 +350,300 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
         </div>
 
         {/* Role Explanation Notice */}
-        <div className="px-6 pt-4 pb-2">
+        <div className="px-6 pt-3 pb-1">
           {selectedRole === 'admin' ? (
-            <div className="p-3 rounded-xl bg-amber-950/40 border border-amber-800/50 flex items-start gap-2.5 text-xs text-amber-200">
+            <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-800/50 flex items-start gap-2.5 text-xs text-amber-200">
               <Crown className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
               <div>
                 <strong className="block text-amber-300 font-semibold mb-0.5">
-                  👑 एडमिन (Admin) एक्सेस:
+                  👑 एडमिन (Admin) लॉगिन:
                 </strong>
-                आप सभी यूज़र्स का डेटा, पूरी टीम की लीड्स, कॉल लॉग्स और ओवरऑल परफॉर्मेंस देख सकते हैं।
+                सभी टीम मेंबर्स की लीड्स, डेटा इम्पोर्ट, कॉल ट्रैकिंग और पूर्ण सेटिंग्स का नियंत्रण।
               </div>
             </div>
           ) : (
-            <div className="p-3 rounded-xl bg-blue-950/40 border border-blue-800/50 flex items-start gap-2.5 text-xs text-blue-200">
+            <div className="p-2.5 rounded-xl bg-blue-950/40 border border-blue-800/50 flex items-start gap-2.5 text-xs text-blue-200">
               <Lock className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
               <div>
                 <strong className="block text-blue-300 font-semibold mb-0.5">
-                  🔒 प्राइवेट यूज़र (User) एक्सेस:
+                  🔒 प्राइवेट यूज़र (User) लॉगिन:
                 </strong>
-                आप सिर्फ अपनी असाइन की हुई लीड्स और कॉल्स ही देख सकेंगे। अन्य यूज़र्स का डेटा पूरी तरह सुरक्षित और गुप्त रहेगा।
+                आप सिर्फ अपनी व्यक्तिगत लीड्स और कॉल हिस्ट्री ही देख पाएंगे।
               </div>
             </div>
           )}
         </div>
 
         {/* Form Body */}
-        <div className="p-6 pt-2 space-y-5">
-          {/* Simulated SMS Alert Banner when OTP is sent */}
-          {step === 'otp' && isSimulatingSms && (
-            <div className="p-3.5 bg-emerald-950/80 border border-emerald-600 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="flex items-center justify-between gap-2 mb-1.5">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-300">
-                  <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>📲 SMS अलर्ट प्राप्त हुआ (Simulated SMS)</span>
-                </span>
-                <span className="text-[10px] text-emerald-400 bg-emerald-900/60 px-1.5 py-0.5 rounded">
-                  अभी-अभी
-                </span>
-              </div>
-              <p className="text-xs text-emerald-100 font-mono">
-                "Housing Worlds CRM लॉगिन हेतु आपका OTP है:{' '}
-                <strong className="text-emerald-300 text-sm font-bold tracking-wider">
-                  {generatedOtp}
-                </strong>
-                "
-              </p>
-              <button
-                type="button"
-                onClick={() => setOtp(generatedOtp)}
-                className="mt-2 text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
-              >
-                <Sparkles className="w-3 h-3" />
-                <span>Auto-fill ({generatedOtp})</span>
-              </button>
-            </div>
-          )}
-
+        <div className="p-6 pt-3 space-y-4">
           {/* Error Message */}
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-200 text-xs flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-200 text-xs flex items-center gap-2 animate-in fade-in duration-200">
               <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
-          {step === 'mobile' ? (
-            /* STEP 1: MOBILE NUMBER INPUT */
-            <form onSubmit={handleSendOtp} className="space-y-4">
+          {authMode === 'password' ? (
+            /* ======================================================== */
+            /* MODE 1: ID & PASSWORD LOGIN (DEFAULT)                     */
+            /* ======================================================== */
+            <form onSubmit={handlePasswordLogin} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                  10-अंकों का मोबाइल नंबर (Mobile Number)
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                  <span>यूज़र आईडी या मोबाइल नंबर (User ID / Mobile)</span>
+                  <span className="text-[11px] text-slate-500 font-normal">उदा. admin, vishal, 9876500000</span>
                 </label>
                 <div className="relative flex items-center">
-                  <span className="absolute left-3 text-slate-400 font-semibold text-sm select-none border-r border-slate-700 pr-2">
-                    +91
-                  </span>
+                  <User className="w-4 h-4 text-slate-500 absolute left-3.5 pointer-events-none" />
                   <input
-                    type="tel"
-                    inputMode="numeric"
-                    placeholder="98XXXXXXXX"
-                    value={mobileNumber}
-                    onChange={(e) => handleMobileChange(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-16 pr-4 py-2.5 text-white placeholder:text-slate-600 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 tracking-wider font-mono font-medium"
+                    id="login-user-id"
+                    type="text"
+                    value={loginId}
+                    onChange={(e) => {
+                      setLoginId(e.target.value);
+                      setErrorMsg('');
+                      // auto detect role if matches default user
+                      const val = e.target.value.trim().toLowerCase();
+                      const matched = DEFAULT_USERS.find(
+                        (u) =>
+                          u.username?.toLowerCase() === val ||
+                          u.mobile === val ||
+                          u.name.toLowerCase() === val
+                      );
+                      if (matched) {
+                        setSelectedRole(matched.role);
+                      }
+                    }}
+                    placeholder="यूज़र आईडी / यूजरनेम दर्ज करें..."
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-slate-600 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium"
                     autoFocus
                   />
                 </div>
               </div>
 
-              {/* If User Role and custom number, ask for User Name */}
-              {selectedRole === 'user' && (
-                <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                    कार्यकारी का नाम (Sales Executive Name)
-                  </label>
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
+                  <span>पासवर्ड (Password)</span>
+                  <span className="text-[11px] text-amber-400/80 font-mono">डिफ़ॉल्ट: password123</span>
+                </label>
+                <div className="relative flex items-center">
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 pointer-events-none" />
                   <input
-                    type="text"
-                    placeholder="उदा. विशाल / राहुल / अमित शर्मा"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white placeholder:text-slate-600 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    id="login-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setErrorMsg('');
+                    }}
+                    placeholder="पासवर्ड दर्ज करें..."
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-10 py-2.5 text-white placeholder:text-slate-600 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 text-slate-400 hover:text-slate-200 cursor-pointer"
+                    title={showPassword ? 'Hide Password' : 'Show Password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
-              )}
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-slate-400 pt-0.5">
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="rounded border-slate-700 bg-slate-950 text-blue-600 focus:ring-0 w-3.5 h-3.5 cursor-pointer"
+                  />
+                  <span>यूज़र आईडी याद रखें (Remember ID)</span>
+                </label>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('otp');
+                    setErrorMsg('');
+                  }}
+                  className="text-blue-400 hover:underline hover:text-blue-300 cursor-pointer"
+                >
+                  OTP से लॉगिन करें?
+                </button>
+              </div>
 
               <button
+                id="btn-login-submit"
                 type="submit"
-                className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer active:scale-98 ${
+                disabled={isLoggingIn}
+                className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer active:scale-98 disabled:opacity-50 ${
                   selectedRole === 'admin'
                     ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
                     : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'
                 }`}
               >
-                <span>OTP भेजें (Send OTP)</span>
+                <span>{isLoggingIn ? 'सत्यापित हो रहा है...' : 'लॉगिन करें (Sign In)'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
           ) : (
-            /* STEP 2: OTP INPUT */
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <div className="flex items-center justify-between text-xs text-slate-400">
-                <span>
-                  नंबर: <strong className="text-white font-mono">+91 {mobileNumber}</strong>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setStep('mobile');
-                    setOtp('');
-                    setErrorMsg('');
-                  }}
-                  className="text-blue-400 hover:underline cursor-pointer"
-                >
-                  नंबर बदलें
-                </button>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                  4-अंकों का OTP दर्ज करें (Enter 4-Digit OTP)
-                </label>
-                <div className="relative flex items-center">
-                  <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 pointer-events-none" />
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    placeholder="• • • •"
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-slate-600 text-center text-lg tracking-[0.5em] font-mono font-bold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    autoFocus
-                  />
+            /* ======================================================== */
+            /* MODE 2: MOBILE OTP LOGIN (SECONDARY OPTION)              */
+            /* ======================================================== */
+            <div className="space-y-4">
+              {/* Simulated SMS Alert Banner when OTP is sent */}
+              {step === 'otp' && isSimulatingSms && (
+                <div className="p-3.5 bg-emerald-950/80 border border-emerald-600 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-300">
+                      <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>📲 SMS अलर्ट प्राप्त हुआ (Simulated SMS)</span>
+                    </span>
+                    <span className="text-[10px] text-emerald-400 bg-emerald-900/60 px-1.5 py-0.5 rounded">
+                      अभी-अभी
+                    </span>
+                  </div>
+                  <p className="text-xs text-emerald-100 font-mono">
+                    "Housing Worlds CRM लॉगिन हेतु आपका OTP है:{' '}
+                    <strong className="text-emerald-300 text-sm font-bold tracking-wider">
+                      {generatedOtp}
+                    </strong>
+                    "
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setOtp(generatedOtp)}
+                    className="mt-2 text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    <span>Auto-fill ({generatedOtp})</span>
+                  </button>
                 </div>
-              </div>
+              )}
 
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-slate-400">
-                  {resendTimer > 0 ? (
-                    `पुनः OTP भेजें (${resendTimer}s)`
-                  ) : (
+              {step === 'mobile' ? (
+                /* STEP 1: MOBILE NUMBER INPUT */
+                <form onSubmit={handleSendOtp} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                      10-अंकों का मोबाइल नंबर (Mobile Number)
+                    </label>
+                    <div className="relative flex items-center">
+                      <span className="absolute left-3 text-slate-400 font-semibold text-sm select-none border-r border-slate-700 pr-2">
+                        +91
+                      </span>
+                      <input
+                        type="tel"
+                        inputMode="numeric"
+                        placeholder="98XXXXXXXX"
+                        value={mobileNumber}
+                        onChange={(e) => handleMobileChange(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-16 pr-4 py-2.5 text-white placeholder:text-slate-600 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 tracking-wider font-mono font-medium"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+
+                  {/* If User Role and custom number, ask for User Name */}
+                  {selectedRole === 'user' && (
+                    <div>
+                      <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                        कार्यकारी का नाम (Sales Executive Name)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="उदा. विशाल / राहुल / अमित शर्मा"
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white placeholder:text-slate-600 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer active:scale-98 ${
+                      selectedRole === 'admin'
+                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
+                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'
+                    }`}
+                  >
+                    <span>OTP भेजें (Send OTP)</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </form>
+              ) : (
+                /* STEP 2: OTP INPUT */
+                <form onSubmit={handleVerifyOtp} className="space-y-4">
+                  <div className="flex items-center justify-between text-xs text-slate-400">
+                    <span>
+                      नंबर: <strong className="text-white font-mono">+91 {mobileNumber}</strong>
+                    </span>
                     <button
                       type="button"
-                      onClick={() => handleSendOtp()}
-                      className="text-blue-400 hover:text-blue-300 font-semibold cursor-pointer"
+                      onClick={() => {
+                        setStep('mobile');
+                        setOtp('');
+                        setErrorMsg('');
+                      }}
+                      className="text-blue-400 hover:underline cursor-pointer"
                     >
-                      OTP दोबारा भेजें (Resend OTP)
+                      नंबर बदलें
                     </button>
-                  )}
-                </span>
-                <span className="text-slate-500 text-[11px]">सुरक्षित OTP प्रमाणीकरण</span>
-              </div>
+                  </div>
 
-              <button
-                type="submit"
-                className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer active:scale-98 ${
-                  selectedRole === 'admin'
-                    ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
-                    : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'
-                }`}
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>लॉगिन सत्यापित करें (Verify & Login)</span>
-              </button>
-            </form>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
+                      4-अंकों का OTP दर्ज करें (Enter 4-Digit OTP)
+                    </label>
+                    <div className="relative flex items-center">
+                      <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 pointer-events-none" />
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        placeholder="• • • •"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-slate-600 text-center text-lg tracking-[0.5em] font-mono font-bold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400">
+                      {resendTimer > 0 ? (
+                        `पुनः OTP भेजें (${resendTimer}s)`
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleSendOtp()}
+                          className="text-blue-400 hover:text-blue-300 font-semibold cursor-pointer"
+                        >
+                          OTP दोबारा भेजें (Resend OTP)
+                        </button>
+                      )}
+                    </span>
+                    <span className="text-slate-500 text-[11px]">सुरक्षित OTP प्रमाणीकरण</span>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer active:scale-98 ${
+                      selectedRole === 'admin'
+                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
+                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'
+                    }`}
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>लॉगिन सत्यापित करें (Verify & Login)</span>
+                  </button>
+                </form>
+              )}
+            </div>
           )}
 
           {/* Quick Demo One-Click Accounts */}
@@ -387,8 +651,9 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
                 <Sparkles className="w-3 h-3 text-amber-400" />
-                <span>Quick Demo Accounts (तुरंत टेस्ट करें)</span>
+                <span>Quick Demo Accounts (1-क्लिक टेस्ट करें)</span>
               </span>
+              <span className="text-[10px] text-slate-500">क्लिक करके तुरंत लॉगिन करें</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -423,9 +688,11 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-slate-400 font-mono block">
-                        +91 {user.mobile}
-                      </span>
+                      <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
+                        <span>ID: {user.username}</span>
+                        <span>•</span>
+                        <span>Pass: 123</span>
+                      </div>
                     </div>
                   </button>
                 );

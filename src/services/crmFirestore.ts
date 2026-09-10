@@ -87,6 +87,22 @@ export async function saveLeadToCloud(lead: Lead): Promise<void> {
 }
 
 /**
+ * Bulk save or update multiple leads in Firestore using batched writes.
+ */
+export async function bulkSaveLeadsToCloud(leads: Lead[]): Promise<void> {
+  const CHUNK_SIZE = 400;
+  for (let i = 0; i < leads.length; i += CHUNK_SIZE) {
+    const chunk = leads.slice(i, i + CHUNK_SIZE);
+    const batch = writeBatch(db);
+    chunk.forEach((lead) => {
+      const dRef = doc(db, LEADS_COLLECTION, String(lead.id));
+      batch.set(dRef, cleanObject(lead), { merge: true });
+    });
+    await batch.commit();
+  }
+}
+
+/**
  * Delete a lead from Firestore.
  */
 export async function deleteLeadFromCloud(leadId: number): Promise<void> {

@@ -5,6 +5,8 @@ export interface AuthUser {
   name: string;
   mobile: string;
   role: UserRole;
+  username?: string;
+  password?: string;
   designation?: string;
   avatarColor?: string;
 }
