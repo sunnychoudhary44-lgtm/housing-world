@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lead, LeadPriority, LeadSource, LeadStatus } from '../types';
+import { Lead, LeadPriority, LeadSource, LeadStatus, AuthUser } from '../types';
 import {
   STATUSES,
   SOURCES,
@@ -7,20 +7,23 @@ import {
   COMMON_PROJECTS,
   COMMON_SIZES,
 } from '../data/initialData';
-import { Sparkles, ArrowLeft, Save, RotateCcw, AlertCircle } from 'lucide-react';
+import { Sparkles, ArrowLeft, Save, RotateCcw, AlertCircle, Lock, User } from 'lucide-react';
 
 interface LeadFormViewProps {
   editLeadData?: Lead | null;
+  currentUser?: AuthUser | null;
   onSaveLead: (lead: Omit<Lead, 'id'> & { id?: number }) => void;
   onCancel: () => void;
 }
 
 export const LeadFormView: React.FC<LeadFormViewProps> = ({
   editLeadData,
+  currentUser,
   onSaveLead,
   onCancel,
 }) => {
   const isEditing = Boolean(editLeadData && editLeadData.id);
+  const isUserRole = currentUser?.role === 'user';
 
   // Form states matching original CRM fields
   const [name, setName] = useState('');
@@ -30,7 +33,9 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
   const [budget, setBudget] = useState('');
   const [size, setSize] = useState('');
   const [status, setStatus] = useState<LeadStatus>('New');
-  const [salesperson, setSalesperson] = useState('');
+  const [salesperson, setSalesperson] = useState(
+    isUserRole && currentUser?.name ? currentUser.name : ''
+  );
   const [followup, setFollowup] = useState('');
   const [priority, setPriority] = useState<LeadPriority>('Normal');
   const [remarks, setRemarks] = useState('');
@@ -46,14 +51,16 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
       setBudget(editLeadData.budget || '');
       setSize(editLeadData.size || '');
       setStatus(editLeadData.status || 'New');
-      setSalesperson(editLeadData.salesperson || '');
+      setSalesperson(
+        editLeadData.salesperson || (isUserRole && currentUser?.name ? currentUser.name : '')
+      );
       setFollowup(editLeadData.followup ? editLeadData.followup.slice(0, 16) : '');
       setPriority(editLeadData.priority || 'Normal');
       setRemarks(editLeadData.remarks || '');
     } else {
       resetForm();
     }
-  }, [editLeadData]);
+  }, [editLeadData, currentUser]);
 
   const resetForm = () => {
     setName('');
@@ -63,7 +70,7 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
     setBudget('');
     setSize('');
     setStatus('New');
-    setSalesperson('');
+    setSalesperson(isUserRole && currentUser?.name ? currentUser.name : '');
     setFollowup('');
     setPriority('Normal');
     setRemarks('');
@@ -296,22 +303,38 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
 
             {/* Salesperson */}
             <div className="field">
-              <label htmlFor="salesperson" className="block text-xs font-semibold text-slate-700 mb-1">
-                Assigned Salesperson
+              <label htmlFor="salesperson" className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                <span>Assigned Salesperson</span>
+                {isUserRole && (
+                  <span className="text-[10px] text-blue-600 font-medium flex items-center gap-0.5">
+                    <Lock className="w-3 h-3" /> Locked to your account
+                  </span>
+                )}
               </label>
-              <select
-                id="salesperson"
-                value={salesperson}
-                onChange={(e) => setSalesperson(e.target.value)}
-                className="w-full px-3.5 py-2 text-xs sm:text-sm bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg outline-none transition-all cursor-pointer font-medium"
-              >
-                <option value="">Unassigned</option>
-                {TEAM_MEMBERS.map((tm) => (
-                  <option key={tm} value={tm}>
-                    {tm}
-                  </option>
-                ))}
-              </select>
+
+              {isUserRole ? (
+                <div className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-100 border border-slate-200 rounded-lg text-slate-800 font-semibold flex items-center gap-2">
+                  <User className="w-4 h-4 text-blue-600" />
+                  <span>{currentUser?.name || salesperson || 'User'}</span>
+                  <span className="ml-auto text-[11px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-medium">
+                    Self
+                  </span>
+                </div>
+              ) : (
+                <select
+                  id="salesperson"
+                  value={salesperson}
+                  onChange={(e) => setSalesperson(e.target.value)}
+                  className="w-full px-3.5 py-2 text-xs sm:text-sm bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg outline-none transition-all cursor-pointer font-medium"
+                >
+                  <option value="">Unassigned</option>
+                  {TEAM_MEMBERS.map((tm) => (
+                    <option key={tm} value={tm}>
+                      {tm}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             {/* Next Follow-up */}

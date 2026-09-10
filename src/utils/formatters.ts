@@ -1,4 +1,4 @@
-import { Lead } from '../types';
+import { Lead, CallLog } from '../types';
 
 export function fmt(v?: string): string {
   if (!v) return '—';
@@ -113,6 +113,60 @@ export function exportLeadsToCSV(leads: Lead[]): void {
   link.setAttribute(
     'download',
     `housing_worlds_leads_${new Date().toISOString().slice(0, 10)}.csv`,
+  );
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+export function formatCallDuration(seconds: number): string {
+  if (seconds <= 0) return '0s (No Ans)';
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  if (mins === 0) return `${secs}s`;
+  if (secs === 0) return `${mins}m`;
+  return `${mins}m ${secs}s`;
+}
+
+export function exportCallsToCSV(calls: CallLog[]): void {
+  const headers = [
+    'Call ID',
+    'Date & Time',
+    'Customer Name',
+    'Mobile',
+    'Salesperson',
+    'Project',
+    'Call Type',
+    'Outcome',
+    'Duration (sec)',
+    'Duration Formatted',
+    'Notes / Remarks',
+  ];
+
+  const rows = calls.map((c) => [
+    `"${c.id}"`,
+    `"${fmt(c.timestamp)}"`,
+    `"${(c.leadName || '').replace(/"/g, '""')}"`,
+    `"${c.mobile || ''}"`,
+    `"${(c.salesperson || '').replace(/"/g, '""')}"`,
+    `"${(c.project || '').replace(/"/g, '""')}"`,
+    `"${c.callType || ''}"`,
+    `"${(c.outcome || '').replace(/"/g, '""')}"`,
+    c.durationSeconds,
+    `"${formatCallDuration(c.durationSeconds)}"`,
+    `"${(c.notes || '').replace(/"/g, '""')}"`,
+  ]);
+
+  const csvContent =
+    'data:text/csv;charset=utf-8,\uFEFF' +
+    [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute(
+    'download',
+    `housing_worlds_call_tracker_${new Date().toISOString().slice(0, 10)}.csv`
   );
   document.body.appendChild(link);
   link.click();

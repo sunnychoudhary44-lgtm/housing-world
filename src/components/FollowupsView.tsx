@@ -20,6 +20,7 @@ interface FollowupsViewProps {
   onQuickReschedule: (id: number, daysToAdd: number) => void;
   onMarkContacted: (id: number) => void;
   onViewLeadDetail: (lead: Lead) => void;
+  onOpenLogModal?: (lead: Lead) => void;
 }
 
 export const FollowupsView: React.FC<FollowupsViewProps> = ({
@@ -28,6 +29,7 @@ export const FollowupsView: React.FC<FollowupsViewProps> = ({
   onQuickReschedule,
   onMarkContacted,
   onViewLeadDetail,
+  onOpenLogModal,
 }) => {
   const [filterTab, setFilterTab] = useState<'all' | 'overdue' | 'today' | 'upcoming'>('all');
 
@@ -285,6 +287,18 @@ export const FollowupsView: React.FC<FollowupsViewProps> = ({
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="flex items-center justify-center gap-1.5">
+                          {onOpenLogModal && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenLogModal(l)}
+                              className="px-2.5 py-1 text-xs font-semibold text-sky-800 bg-sky-100 hover:bg-sky-200 border border-sky-300 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                              title="Log Call & Update Follow-up"
+                            >
+                              <PhoneCall className="w-3 h-3 text-sky-700" />
+                              <span>Log Call</span>
+                            </button>
+                          )}
+
                           <button
                             type="button"
                             onClick={() =>

@@ -5,6 +5,7 @@ import {
   Plus,
   MessageCircle,
   PhoneCall,
+  PhoneForwarded,
   Edit2,
   Trash2,
   Calendar,
@@ -23,6 +24,9 @@ interface LeadsViewProps {
   onDeleteLead: (id: number) => void;
   onUpdateLeadStatus: (id: number, newStatus: LeadStatus) => void;
   onViewLeadDetail: (lead: Lead) => void;
+  onOpenLogModal?: (lead: Lead) => void;
+  initialSalespersonFilter?: string;
+  onClearSalespersonFilter?: () => void;
 }
 
 export const LeadsView: React.FC<LeadsViewProps> = ({
@@ -32,12 +36,22 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
   onDeleteLead,
   onUpdateLeadStatus,
   onViewLeadDetail,
+  onOpenLogModal,
+  initialSalespersonFilter = '',
+  onClearSalespersonFilter,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [salespersonFilter, setSalespersonFilter] = useState('');
+  const [salespersonFilter, setSalespersonFilter] = useState(initialSalespersonFilter);
   const [priorityFilter, setPriorityFilter] = useState('');
   const [projectFilter, setProjectFilter] = useState('');
+
+  // Sync if initialSalespersonFilter changes
+  React.useEffect(() => {
+    if (initialSalespersonFilter !== undefined) {
+      setSalespersonFilter(initialSalespersonFilter);
+    }
+  }, [initialSalespersonFilter]);
 
   // Extract unique projects for project filter
   const uniqueProjects = useMemo(() => {
@@ -392,6 +406,17 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                           >
                             <PhoneCall className="w-3.5 h-3.5" />
                           </button>
+
+                          {onOpenLogModal && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenLogModal(l)}
+                              className="p-1.5 text-sky-700 hover:text-sky-800 bg-sky-50 hover:bg-sky-100 rounded-lg transition-colors border border-sky-200"
+                              title="Log Call Record"
+                            >
+                              <PhoneForwarded className="w-3.5 h-3.5" />
+                            </button>
+                          )}
 
                           <button
                             type="button"

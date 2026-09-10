@@ -1,16 +1,24 @@
 import React from 'react';
-import { Lead } from '../types';
+import { Lead, AuthUser } from '../types';
 import { TEAM_MEMBERS, TEAM_TARGETS } from '../data/initialData';
 import { parseGaj } from '../utils/formatters';
-import { Trophy, Target, Users, TrendingUp, Award, CheckCircle2 } from 'lucide-react';
+import { Trophy, Target, Users, TrendingUp, Award, CheckCircle2, Lock, Shield } from 'lucide-react';
 
 interface TeamViewProps {
   leads: Lead[];
+  currentUser?: AuthUser | null;
 }
 
-export const TeamView: React.FC<TeamViewProps> = ({ leads }) => {
-  // Compute team metrics
-  const teamStats = TEAM_MEMBERS.map((t) => {
+export const TeamView: React.FC<TeamViewProps> = ({ leads, currentUser }) => {
+  const isAdmin = currentUser?.role === 'admin';
+
+  // Filter team members based on role
+  const displayedMembers = isAdmin
+    ? TEAM_MEMBERS
+    : TEAM_MEMBERS.filter((t) => t.toLowerCase() === (currentUser?.name || '').toLowerCase());
+
+  // Compute metrics
+  const teamStats = displayedMembers.map((t) => {
     const a = leads.filter((l) => l.salesperson === t);
     const totalLeads = a.length;
     const followups = a.filter((l) => l.status === 'Follow-up').length;
@@ -37,9 +45,9 @@ export const TeamView: React.FC<TeamViewProps> = ({ leads }) => {
     };
   });
 
-  // Identify top salesperson by booked Gaj
+  // Identify top salesperson by booked Gaj (for admin)
   const topPerformer = [...teamStats].sort((a, b) => b.bookedGaj - a.bookedGaj)[0];
-  const totalTarget = Object.values(TEAM_TARGETS).reduce((a, b) => a + b, 0);
+  const totalTarget = displayedMembers.reduce((sum, t) => sum + (TEAM_TARGETS[t] || 50), 0);
   const totalBooked = teamStats.reduce((a, b) => a + b.bookedGaj, 0);
   const overallTeamAchieved =
     totalTarget > 0 ? Math.round((totalBooked / totalTarget) * 100) : 0;
@@ -49,13 +57,27 @@ export const TeamView: React.FC<TeamViewProps> = ({ leads }) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-slate-200">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            Sales Team Performance & Targets
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            <span>{isAdmin ? 'Sales Team Performance & Targets' : 'My Personal Target & Performance'}</span>
+            {!isAdmin && (
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                🔒 Private Account View
+              </span>
+            )}
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Real estate plot sales targets in Gaj, site visit counts, and conversion benchmarks.
+            {isAdmin
+              ? 'Real estate plot sales targets in Gaj, site visit counts, and conversion benchmarks across all team members.'
+              : `Sales targets in Gaj, site visits, and booking metrics assigned to ${currentUser?.name || 'you'}.`}
           </p>
         </div>
+
+        {!isAdmin && (
+          <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-800 flex items-center gap-2">
+            <Shield className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>अन्य टीम मेंबर्स का डेटा केवल कंपनी एडमिन के लिए सुरक्षित है।</span>
+          </div>
+        )}
       </div>
 
       {/* Overview Metric Cards */}
@@ -63,20 +85,22 @@ export const TeamView: React.FC<TeamViewProps> = ({ leads }) => {
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Total Team Target
+              {isAdmin ? 'Total Team Target' : 'My Monthly Target'}
             </span>
             <Target className="w-4 h-4 text-blue-600" />
           </div>
           <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-1">
             {totalTarget} <span className="text-sm font-semibold text-slate-500">Gaj</span>
           </div>
-          <p className="text-xs text-slate-400 mt-1">Combined monthly sales quota</p>
+          <p className="text-xs text-slate-400 mt-1">
+            {isAdmin ? 'Combined monthly sales quota' : 'Assigned plot sales quota'}
+          </p>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Total Booked & Closed
+              {isAdmin ? 'Total Booked & Closed' : 'My Booked & Closed'}
             </span>
             <TrendingUp className="w-4 h-4 text-emerald-600" />
           </div>
@@ -97,17 +121,19 @@ export const TeamView: React.FC<TeamViewProps> = ({ leads }) => {
         <div className="bg-gradient-to-tr from-amber-50 to-orange-50/70 p-4 rounded-xl border border-amber-200/80 shadow-xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-amber-800 uppercase tracking-wider">
-              Leaderboard Star
+              {isAdmin ? 'Leaderboard Star' : 'Status & Quota'}
             </span>
             <Trophy className="w-4 h-4 text-amber-600" />
           </div>
           <div className="text-xl sm:text-2xl font-bold text-amber-950 mt-1">
-            {topPerformer ? topPerformer.name : '—'}
+            {isAdmin ? (topPerformer ? topPerformer.name : '—') : `${overallTeamAchieved}% Achieved`}
           </div>
           <p className="text-xs text-amber-800/80 mt-1">
-            {topPerformer
-              ? `${topPerformer.bookedGaj} Gaj booked (${topPerformer.percentAchieved}% of quota)`
-              : 'Target tracking active'}
+            {isAdmin
+              ? topPerformer
+                ? `${topPerformer.bookedGaj} Gaj booked (${topPerformer.percentAchieved}% of quota)`
+                : 'Target tracking active'
+              : `${totalBooked} of ${totalTarget} Gaj booked so far`}
           </p>
         </div>
       </div>

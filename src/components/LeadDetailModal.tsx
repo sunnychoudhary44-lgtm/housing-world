@@ -2,6 +2,7 @@ import React from 'react';
 import {
   X,
   Phone,
+  PhoneCall,
   MessageSquare,
   Calendar,
   User,
@@ -13,9 +14,10 @@ import {
   Trash2,
   Clock,
   FileText,
+  CheckCircle2,
 } from 'lucide-react';
-import { Lead } from '../types';
-import { fmt, openWhatsApp, makePhoneCall, getFollowupTiming } from '../utils/formatters';
+import { Lead, CallLog } from '../types';
+import { fmt, openWhatsApp, makePhoneCall, getFollowupTiming, formatCallDuration } from '../utils/formatters';
 
 interface LeadDetailModalProps {
   lead: Lead | null;
@@ -24,6 +26,8 @@ interface LeadDetailModalProps {
   onEdit: (id: number) => void;
   onDelete: (id: number) => void;
   onOpenWhatsAppTemplates: (lead: Lead) => void;
+  onOpenLogModal?: (lead: Lead) => void;
+  calls?: CallLog[];
 }
 
 export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
@@ -33,10 +37,17 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
   onEdit,
   onDelete,
   onOpenWhatsAppTemplates,
+  onOpenLogModal,
+  calls = [],
 }) => {
   if (!isOpen || !lead) return null;
 
   const timing = getFollowupTiming(lead.followup, lead.status);
+
+  // Calls for this lead
+  const leadCalls = calls.filter(
+    (c) => c.leadId === lead.id || c.mobile === lead.mobile
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
@@ -71,15 +82,29 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
         {/* Content Body */}
         <div className="p-6 overflow-y-auto space-y-5">
           {/* Quick Action Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             <button
               type="button"
               onClick={() => makePhoneCall(lead.mobile)}
               className="p-2.5 rounded-xl bg-blue-50 hover:bg-blue-100/80 text-blue-700 font-semibold text-xs flex flex-col items-center justify-center gap-1 border border-blue-200 transition-colors cursor-pointer"
             >
               <Phone className="w-4 h-4 text-blue-600" />
-              <span>Call Client</span>
+              <span>Call</span>
             </button>
+
+            {onOpenLogModal && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  onOpenLogModal(lead);
+                }}
+                className="p-2.5 rounded-xl bg-sky-50 hover:bg-sky-100/80 text-sky-800 font-semibold text-xs flex flex-col items-center justify-center gap-1 border border-sky-200 transition-colors cursor-pointer"
+              >
+                <PhoneCall className="w-4 h-4 text-sky-600" />
+                <span>Log Call</span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -104,7 +129,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
               className="p-2.5 rounded-xl bg-indigo-50 hover:bg-indigo-100/80 text-indigo-800 font-semibold text-xs flex flex-col items-center justify-center gap-1 border border-indigo-200 transition-colors cursor-pointer"
             >
               <FileText className="w-4 h-4 text-indigo-600" />
-              <span>WA Templates</span>
+              <span>Templates</span>
             </button>
 
             <button
@@ -185,6 +210,62 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs sm:text-sm text-slate-800 whitespace-pre-line leading-relaxed min-h-[70px]">
               {lead.remarks || 'No remarks recorded for this customer yet.'}
             </div>
+          </div>
+
+          {/* Call Tracker History for this Lead */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-semibold text-slate-600 flex items-center gap-1.5">
+                <PhoneCall className="w-3.5 h-3.5 text-sky-600" />
+                <span>Call Logs History ({leadCalls.length})</span>
+              </span>
+              {onOpenLogModal && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenLogModal(lead);
+                  }}
+                  className="text-xs text-sky-600 hover:text-sky-700 font-semibold cursor-pointer"
+                >
+                  + Add Call
+                </button>
+              )}
+            </div>
+
+            {leadCalls.length > 0 ? (
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {leadCalls.map((c) => (
+                  <div
+                    key={c.id}
+                    className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-800">
+                        {c.outcome}
+                      </span>
+                      <span className="text-slate-400 font-mono text-[11px]">
+                        {fmt(c.timestamp)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-500 text-[11px]">
+                      <span>Caller: <strong>{c.salesperson}</strong></span>
+                      <span>Duration: <strong>{formatCallDuration(c.durationSeconds)}</strong></span>
+                      <span>Type: {c.callType}</span>
+                    </div>
+                    {c.notes && (
+                      <p className="text-slate-700 text-xs pt-1 border-t border-slate-200/60 mt-1">
+                        {c.notes}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center text-xs text-slate-400">
+                No phone calls logged for this customer yet.
+              </div>
+            )}
           </div>
         </div>
 

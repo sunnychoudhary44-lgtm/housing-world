@@ -8,27 +8,39 @@ import {
   BarChart3,
   Flame,
   AlertTriangle,
+  PhoneCall,
 } from 'lucide-react';
-import { ActivePage, Lead } from '../types';
+import { ActivePage, Lead, CallLog, AuthUser } from '../types';
 import { getFollowupTiming } from '../utils/formatters';
 
 interface SidebarProps {
   activePage: ActivePage;
   onSelectPage: (page: ActivePage) => void;
   leads: Lead[];
+  calls?: CallLog[];
+  currentUser?: AuthUser | null;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activePage,
   onSelectPage,
   leads,
+  calls = [],
+  currentUser,
 }) => {
+  const isAdmin = currentUser?.role === 'admin';
+
   // Compute counts
   const totalLeads = leads.length;
   const overdueCount = leads.filter(
     (l) => getFollowupTiming(l.followup, l.status) === 'overdue'
   ).length;
   const hotCount = leads.filter((l) => l.priority === 'Hot').length;
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayCallsCount = calls.filter(
+    (c) => c.timestamp.slice(0, 10) === todayStr
+  ).length;
 
   const navItems: Array<{
     id: ActivePage;
@@ -39,12 +51,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }> = [
     {
       id: 'dashboard',
-      label: 'Dashboard',
+      label: isAdmin ? 'Dashboard' : 'My Dashboard',
       icon: <LayoutDashboard className="w-4 h-4 shrink-0" />,
     },
     {
       id: 'leads',
-      label: 'Leads',
+      label: isAdmin ? 'All Leads' : 'My Leads',
       icon: <Users className="w-4 h-4 shrink-0" />,
       badge: totalLeads,
       badgeColor: 'bg-slate-700 text-slate-200',
@@ -55,20 +67,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: <UserPlus className="w-4 h-4 shrink-0" />,
     },
     {
+      id: 'calls',
+      label: isAdmin ? 'Call Tracker' : 'My Calls',
+      icon: <PhoneCall className="w-4 h-4 shrink-0" />,
+      badge: todayCallsCount > 0 ? todayCallsCount : undefined,
+      badgeColor: 'bg-sky-500/20 text-sky-300 border border-sky-500/40 font-bold',
+    },
+    {
       id: 'followups',
-      label: 'Follow-ups',
+      label: isAdmin ? 'Follow-ups' : 'My Follow-ups',
       icon: <CalendarClock className="w-4 h-4 shrink-0" />,
       badge: overdueCount > 0 ? overdueCount : undefined,
       badgeColor: 'bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold',
     },
     {
       id: 'team',
-      label: 'Team',
+      label: isAdmin ? 'Team & Targets' : 'My Quota & Target',
       icon: <Briefcase className="w-4 h-4 shrink-0" />,
     },
     {
       id: 'reports',
-      label: 'Reports',
+      label: isAdmin ? 'Reports (All)' : 'My Reports',
       icon: <BarChart3 className="w-4 h-4 shrink-0" />,
     },
   ];

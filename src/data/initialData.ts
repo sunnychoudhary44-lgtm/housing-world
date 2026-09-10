@@ -1,4 +1,13 @@
-import { Lead, LeadStatus, LeadSource, WhatsAppTemplate } from '../types';
+import {
+  Lead,
+  LeadStatus,
+  LeadSource,
+  WhatsAppTemplate,
+  CallLog,
+  CallOutcome,
+  CallType,
+  AuthUser,
+} from '../types';
 
 export const STATUSES: LeadStatus[] = [
   'New',
@@ -28,6 +37,57 @@ export const TEAM_MEMBERS: string[] = [
   'Yashpal Ji',
   'Sanjay Ji',
   'Rahul',
+];
+
+export const DEFAULT_USERS: AuthUser[] = [
+  {
+    id: 'user-admin-1',
+    name: 'Sunny Choudhary',
+    mobile: '9876500000',
+    role: 'admin',
+    designation: 'Director / System Admin',
+    avatarColor: 'bg-amber-500',
+  },
+  {
+    id: 'user-vishal',
+    name: 'Vishal',
+    mobile: '9871111111',
+    role: 'user',
+    designation: 'Sales Executive',
+    avatarColor: 'bg-blue-500',
+  },
+  {
+    id: 'user-jpgupta',
+    name: 'JP Gupta',
+    mobile: '9872222222',
+    role: 'user',
+    designation: 'Senior Executive',
+    avatarColor: 'bg-emerald-500',
+  },
+  {
+    id: 'user-yashpal',
+    name: 'Yashpal Ji',
+    mobile: '9873333333',
+    role: 'user',
+    designation: 'Sales Executive',
+    avatarColor: 'bg-purple-500',
+  },
+  {
+    id: 'user-sanjay',
+    name: 'Sanjay Ji',
+    mobile: '9874444444',
+    role: 'user',
+    designation: 'Team Lead',
+    avatarColor: 'bg-rose-500',
+  },
+  {
+    id: 'user-rahul',
+    name: 'Rahul',
+    mobile: '9875555555',
+    role: 'user',
+    designation: 'Telecaller',
+    avatarColor: 'bg-cyan-500',
+  },
 ];
 
 export const TEAM_TARGETS: Record<string, number> = {
@@ -223,5 +283,241 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
     labelHindi: 'सीमित ऑफर और बुकिंग डिस्काउंट',
     message:
       'नमस्ते {name} जी,\n\nHousing Worlds आपके लिए लेकर आया है {project} में खास डिस्काउंट ऑफर! सिर्फ ₹21,000/₹51,000 टोकन देकर आप अपना मनपसंद प्लॉट बुक करा सकते हैं, बाकी आसान किस्तों में।\n\nकृपया आज ही संपर्क करें ताकि बेस्ट कॉर्नर या फ्रंट प्लॉट मिल सके।\n\nधन्यवाद,\n{salesperson} - Housing Worlds',
+  },
+];
+
+export interface CallOutcomeConfig {
+  value: CallOutcome;
+  category: 'connected' | 'not_connected' | 'invalid';
+  badgeBg: string;
+  badgeText: string;
+  border: string;
+}
+
+export const CALL_OUTCOMES: CallOutcomeConfig[] = [
+  {
+    value: 'Connected - Site Visit Scheduled',
+    category: 'connected',
+    badgeBg: 'bg-purple-50',
+    badgeText: 'text-purple-700 font-bold',
+    border: 'border-purple-200',
+  },
+  {
+    value: 'Connected - Interested',
+    category: 'connected',
+    badgeBg: 'bg-emerald-50',
+    badgeText: 'text-emerald-700 font-bold',
+    border: 'border-emerald-200',
+  },
+  {
+    value: 'Connected - Callback Requested',
+    category: 'connected',
+    badgeBg: 'bg-blue-50',
+    badgeText: 'text-blue-700 font-bold',
+    border: 'border-blue-200',
+  },
+  {
+    value: 'Connected - Not Interested',
+    category: 'connected',
+    badgeBg: 'bg-slate-100',
+    badgeText: 'text-slate-700 font-medium',
+    border: 'border-slate-200',
+  },
+  {
+    value: 'Not Connected - Ringing',
+    category: 'not_connected',
+    badgeBg: 'bg-amber-50',
+    badgeText: 'text-amber-700 font-medium',
+    border: 'border-amber-200',
+  },
+  {
+    value: 'Not Connected - Busy',
+    category: 'not_connected',
+    badgeBg: 'bg-orange-50',
+    badgeText: 'text-orange-700 font-medium',
+    border: 'border-orange-200',
+  },
+  {
+    value: 'Not Connected - Switched Off',
+    category: 'not_connected',
+    badgeBg: 'bg-rose-50',
+    badgeText: 'text-rose-700 font-medium',
+    border: 'border-rose-200',
+  },
+  {
+    value: 'Invalid Number',
+    category: 'invalid',
+    badgeBg: 'bg-red-100',
+    badgeText: 'text-red-800 font-medium',
+    border: 'border-red-300',
+  },
+];
+
+// Helper to construct timestamps
+function getRecentCallTime(minutesAgo: number): string {
+  return new Date(Date.now() - minutesAgo * 60 * 1000).toISOString();
+}
+
+export const INITIAL_CALLS: CallLog[] = [
+  {
+    id: 'call-1',
+    leadId: 101,
+    leadName: 'Rameshwar Sharma',
+    mobile: '9871234567',
+    salesperson: 'Vishal',
+    project: 'Nekpur',
+    callType: 'Follow-up',
+    outcome: 'Connected - Site Visit Scheduled',
+    durationSeconds: 245,
+    timestamp: getRecentCallTime(35),
+    notes: 'Customer confirmed for Sunday 11:00 AM site visit with family for 100 Gaj plot. Asked for pickup from Ballabhgarh metro.',
+    rescheduledFollowup: new Date(Date.now() + 48 * 3600 * 1000).toISOString().slice(0, 16),
+    updatedLeadStatus: 'Site Visit',
+  },
+  {
+    id: 'call-2',
+    leadId: 102,
+    leadName: 'Amitabh Verma',
+    mobile: '9810987654',
+    salesperson: 'Sanjay Ji',
+    project: 'Govardhan Enclave',
+    callType: 'Follow-up',
+    outcome: 'Connected - Interested',
+    durationSeconds: 180,
+    timestamp: getRecentCallTime(75),
+    notes: 'Wants layout copy of Govardhan Enclave sent on WhatsApp. Budget ₹18 Lakhs approved by his brother.',
+    rescheduledFollowup: new Date(Date.now() + 24 * 3600 * 1000).toISOString().slice(0, 16),
+  },
+  {
+    id: 'call-3',
+    leadId: 103,
+    leadName: 'Deepak Raghav',
+    mobile: '9711223344',
+    salesperson: 'Vishal',
+    project: 'Gounchi',
+    callType: 'Follow-up',
+    outcome: 'Not Connected - Ringing',
+    durationSeconds: 0,
+    timestamp: getRecentCallTime(110),
+    notes: 'Rang full duration, no response. Sent WhatsApp follow-up reminder with project brochure.',
+  },
+  {
+    id: 'call-4',
+    leadId: 104,
+    leadName: 'Smt. Kamlesh Devi',
+    mobile: '9999887766',
+    salesperson: 'JP Gupta',
+    project: 'Nekpur',
+    callType: 'Outgoing',
+    outcome: 'Connected - Site Visit Scheduled',
+    durationSeconds: 310,
+    timestamp: getRecentCallTime(160),
+    notes: 'Daughter in law will accompany. Confirmed Saturday 2:00 PM for 60 Gaj plot. JP Gupta ji will guide on location.',
+    updatedLeadStatus: 'Site Visit',
+  },
+  {
+    id: 'call-5',
+    leadId: 105,
+    leadName: 'Harish Rawat',
+    mobile: '9811445566',
+    salesperson: 'Yashpal Ji',
+    project: 'Palwal Highway Plots',
+    callType: 'Outgoing',
+    outcome: 'Connected - Callback Requested',
+    durationSeconds: 90,
+    timestamp: getRecentCallTime(220),
+    notes: 'Currently in meeting at office. Requested to call back today evening around 6:30 PM.',
+    rescheduledFollowup: new Date(Date.now() + 5 * 3600 * 1000).toISOString().slice(0, 16),
+  },
+  {
+    id: 'call-6',
+    leadId: 106,
+    leadName: 'Sunil Bhati',
+    mobile: '9873001122',
+    salesperson: 'JP Gupta',
+    project: 'Gounchi',
+    callType: 'Outgoing',
+    outcome: 'Not Connected - Busy',
+    durationSeconds: 0,
+    timestamp: getRecentCallTime(290),
+    notes: 'Line busy. Dropped standard SMS & WhatsApp text.',
+  },
+  {
+    id: 'call-7',
+    leadId: 107,
+    leadName: 'Pooja Choudhary',
+    mobile: '9312009988',
+    salesperson: 'Rahul',
+    project: 'Govardhan Enclave',
+    callType: 'Outgoing',
+    outcome: 'Connected - Interested',
+    durationSeconds: 155,
+    timestamp: getRecentCallTime(340),
+    notes: 'Inquired about registry process and bank loan feasibility for Govardhan Enclave plot.',
+  },
+  {
+    id: 'call-8',
+    leadId: 109,
+    leadName: 'Dharmendra Yadav',
+    mobile: '9818776655',
+    salesperson: 'Vishal',
+    project: 'Palwal Highway Plots',
+    callType: 'Follow-up',
+    outcome: 'Connected - Site Visit Scheduled',
+    durationSeconds: 420,
+    timestamp: getRecentCallTime(420),
+    notes: 'Token booking discussion. Agreed to inspect 250 Gaj commercial frontage plot tomorrow morning at 10 AM.',
+    updatedLeadStatus: 'Site Visit',
+  },
+  {
+    id: 'call-9',
+    leadId: 108,
+    leadName: 'Vikram Chauhan',
+    mobile: '9899112233',
+    salesperson: 'Sanjay Ji',
+    project: 'Nekpur',
+    callType: 'Follow-up',
+    outcome: 'Not Connected - Switched Off',
+    durationSeconds: 0,
+    timestamp: getRecentCallTime(540),
+    notes: 'Phone switched off. Will attempt again later in the afternoon.',
+  },
+  {
+    id: 'call-10',
+    leadName: 'Direct Walk-in Inquiry (Naresh)',
+    mobile: '9810112233',
+    salesperson: 'Yashpal Ji',
+    project: 'Gounchi',
+    callType: 'Incoming',
+    outcome: 'Connected - Interested',
+    durationSeconds: 210,
+    timestamp: getRecentCallTime(720),
+    notes: 'Saw banner at Gounchi turn. Inquired about 80 Gaj plot prices and possession timeline.',
+  },
+  {
+    id: 'call-11',
+    leadId: 110,
+    leadName: 'Manoj Tiwari',
+    mobile: '9910223344',
+    salesperson: 'JP Gupta',
+    project: 'Govardhan Enclave',
+    callType: 'Follow-up',
+    outcome: 'Connected - Callback Requested',
+    durationSeconds: 75,
+    timestamp: getRecentCallTime(1440), // Yesterday
+    notes: 'Traveling out of station, will return on Monday. Remind on Monday 11:00 AM.',
+  },
+  {
+    id: 'call-12',
+    leadId: 111,
+    leadName: 'Mohd. Imran',
+    mobile: '9871998877',
+    salesperson: 'Rahul',
+    project: 'Green Valley Township',
+    callType: 'Follow-up',
+    outcome: 'Connected - Not Interested',
+    durationSeconds: 110,
+    timestamp: getRecentCallTime(1520), // Yesterday
+    notes: 'Found property elsewhere near Faridabad. Marked inquiry as closed.',
   },
 ];

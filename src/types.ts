@@ -1,3 +1,14 @@
+export type UserRole = 'admin' | 'user';
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  mobile: string;
+  role: UserRole;
+  designation?: string;
+  avatarColor?: string;
+}
+
 export type LeadStatus =
   | 'New'
   | 'Contacted'
@@ -42,7 +53,42 @@ export interface SalesTarget {
   targetGaj: number;
 }
 
-export type ActivePage = 'dashboard' | 'leads' | 'add' | 'followups' | 'team' | 'reports';
+export type ActivePage =
+  | 'dashboard'
+  | 'leads'
+  | 'add'
+  | 'followups'
+  | 'calls'
+  | 'team'
+  | 'reports';
+
+export type CallType = 'Outgoing' | 'Incoming' | 'Follow-up';
+
+export type CallOutcome =
+  | 'Connected - Interested'
+  | 'Connected - Site Visit Scheduled'
+  | 'Connected - Callback Requested'
+  | 'Connected - Not Interested'
+  | 'Not Connected - Ringing'
+  | 'Not Connected - Busy'
+  | 'Not Connected - Switched Off'
+  | 'Invalid Number';
+
+export interface CallLog {
+  id: string;
+  leadId?: number;
+  leadName: string;
+  mobile: string;
+  salesperson: string;
+  project?: string;
+  callType: CallType;
+  outcome: CallOutcome;
+  durationSeconds: number; // Duration in seconds
+  timestamp: string; // ISO datetime
+  notes: string;
+  rescheduledFollowup?: string;
+  updatedLeadStatus?: LeadStatus;
+}
 
 export interface WhatsAppTemplate {
   id: string;
