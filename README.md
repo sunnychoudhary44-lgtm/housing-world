@@ -20,10 +20,24 @@ A real estate CRM built for **Housing Worlds** sales operations, telecalling log
 3. Click **Deploy**.
 4. In Settings > Domains, you can add your custom domain: `crm.housingworlds.com`.
 
-### Option 2: Netlify
-1. Import repository into [Netlify](https://netlify.com).
-2. Configuration is automatically detected via `netlify.toml`.
-3. Click **Deploy Site**.
+### Option 2: Netlify Deployment
+
+#### Method A: Git Integration (Recommended)
+1. Push this repository to **GitHub / GitLab**.
+2. Log in to [Netlify](https://app.netlify.com) and click **"Add new site" > "Import an existing project"**.
+3. Select your repository. Netlify will automatically detect the settings from `netlify.toml`:
+   - **Build command**: `npm run build`
+   - **Publish directory**: `dist`
+4. Click **"Deploy site"**.
+5. Your CRM will be live at a URL like `https://housing-worlds-crm.netlify.app`.
+6. To attach a custom domain, go to **Domain management** > **Add a domain** (e.g. `crm.housingworlds.com`).
+
+#### Method B: Manual / Drag & Drop
+1. Run `npm run build` locally.
+2. Go to [Netlify Drop](https://app.netlify.com/drop).
+3. Drag and drop the generated `dist` folder directly onto Netlify.
+
+> **Note**: SPA client-side routing is pre-configured via `public/_redirects` and `netlify.toml` so page refreshes and direct links will never 404. All Firestore credentials are embedded within `firebase-applet-config.json` and work right out of the box.
 
 ### Option 3: Local Development
 ```bash

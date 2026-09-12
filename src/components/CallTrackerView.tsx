@@ -23,7 +23,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { CallLog, Lead, ActivePage } from '../types';
-import { TEAM_MEMBERS, CALL_OUTCOMES } from '../data/initialData';
+import { CALL_OUTCOMES } from '../data/initialData';
 import {
   fmt,
   formatCallDuration,
@@ -35,6 +35,7 @@ import {
 interface CallTrackerViewProps {
   calls: CallLog[];
   leads: Lead[];
+  teamMembers?: string[];
   onOpenLogModal: (lead?: Lead | null) => void;
   onDeleteCall: (id: string) => void;
   onViewLeadDetail: (lead: Lead) => void;
@@ -44,6 +45,7 @@ interface CallTrackerViewProps {
 export const CallTrackerView: React.FC<CallTrackerViewProps> = ({
   calls,
   leads,
+  teamMembers = [],
   onOpenLogModal,
   onDeleteCall,
   onViewLeadDetail,
@@ -102,9 +104,19 @@ export const CallTrackerView: React.FC<CallTrackerViewProps> = ({
     return Math.round(sum / list.length);
   }, [calls]);
 
+  // Active Callers dynamically from teamMembers and logged calls
+  const activeCallers = useMemo(() => {
+    const set = new Set<string>();
+    (teamMembers || []).forEach((tm) => set.add(tm));
+    calls.forEach((c) => {
+      if (c.salesperson && c.salesperson.trim()) set.add(c.salesperson.trim());
+    });
+    return Array.from(set).filter(Boolean);
+  }, [teamMembers, calls]);
+
   // Executive 50 calls tracker stats
   const executiveStats = useMemo(() => {
-    return TEAM_MEMBERS.map((name) => {
+    return activeCallers.map((name) => {
       const execCallsToday = todayCalls.filter((c) => c.salesperson === name);
       const connectedToday = execCallsToday.filter((c) =>
         c.outcome.startsWith('Connected')
@@ -124,7 +136,7 @@ export const CallTrackerView: React.FC<CallTrackerViewProps> = ({
         progressPct,
       };
     });
-  }, [todayCalls]);
+  }, [activeCallers, todayCalls]);
 
   // Filtered Calls list
   const filteredCalls = useMemo(() => {
@@ -446,7 +458,7 @@ export const CallTrackerView: React.FC<CallTrackerViewProps> = ({
               className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
             >
               <option value="all">All Executives</option>
-              {TEAM_MEMBERS.map((tm) => (
+              {activeCallers.map((tm) => (
                 <option key={tm} value={tm}>
                   {tm}
                 </option>

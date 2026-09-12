@@ -15,11 +15,12 @@ import {
   FileSpreadsheet,
 } from 'lucide-react';
 import { Lead, LeadStatus } from '../types';
-import { STATUSES, TEAM_MEMBERS } from '../data/initialData';
+import { STATUSES } from '../data/initialData';
 import { fmt, openWhatsApp, makePhoneCall, getFollowupTiming } from '../utils/formatters';
 
 interface LeadsViewProps {
   leads: Lead[];
+  teamMembers?: string[];
   onAddNewLead: () => void;
   onImportExcel?: () => void;
   onEditLead: (id: number) => void;
@@ -33,6 +34,7 @@ interface LeadsViewProps {
 
 export const LeadsView: React.FC<LeadsViewProps> = ({
   leads,
+  teamMembers = [],
   onAddNewLead,
   onImportExcel,
   onEditLead,
@@ -64,6 +66,16 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
     });
     return Array.from(set);
   }, [leads]);
+
+  // Extract unique salespersons for salesperson filter
+  const availableSalespersons = useMemo(() => {
+    const set = new Set<string>();
+    (teamMembers || []).forEach((tm) => set.add(tm));
+    leads.forEach((l) => {
+      if (l.salesperson && l.salesperson.trim()) set.add(l.salesperson.trim());
+    });
+    return Array.from(set).filter(Boolean);
+  }, [teamMembers, leads]);
 
   // Filtered Leads
   const filteredLeads = useMemo(() => {
@@ -187,7 +199,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
               className="px-3 py-2 text-xs sm:text-sm bg-white border border-slate-200 rounded-lg outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 cursor-pointer text-slate-700 font-medium hidden sm:block"
             >
               <option value="">All Sales Team</option>
-              {TEAM_MEMBERS.map((tm) => (
+              {availableSalespersons.map((tm) => (
                 <option key={tm} value={tm}>
                   {tm}
                 </option>
@@ -456,6 +468,38 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                     </tr>
                   );
                 })
+              ) : leads.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-14 text-center text-slate-400">
+                    <div className="flex flex-col items-center justify-center max-w-sm mx-auto">
+                      <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
+                        <Plus className="w-6 h-6" />
+                      </div>
+                      <p className="text-base font-bold text-slate-800">डेटाबेस तैयार है (Ready for Use)</p>
+                      <p className="text-xs text-slate-500 mt-1 mb-4">
+                        अभी कोई लीड नहीं है। अपनी पहली लीड मैन्युअली जोड़ें या Excel शीट से बल्क में इम्पोर्ट करें।
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={onAddNewLead}
+                          className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors shadow-sm cursor-pointer"
+                        >
+                          + Add First Lead
+                        </button>
+                        {onImportExcel && (
+                          <button
+                            type="button"
+                            onClick={onImportExcel}
+                            className="px-3 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors cursor-pointer"
+                          >
+                            Import Excel
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                </tr>
               ) : (
                 <tr>
                   <td colSpan={8} className="py-12 text-center text-slate-400">

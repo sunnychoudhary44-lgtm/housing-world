@@ -16,10 +16,19 @@ import {
   Shield,
   PhoneCall,
   ExternalLink,
+  IndianRupee,
 } from 'lucide-react';
 import { Lead, CallLog, AuthUser } from '../types';
-import { TEAM_TARGETS } from '../data/initialData';
-import { fmt, parseGaj, openWhatsApp, makePhoneCall, getFollowupTiming } from '../utils/formatters';
+import {
+  fmt,
+  parseGaj,
+  openWhatsApp,
+  makePhoneCall,
+  getFollowupTiming,
+  formatINR,
+  getLeadPaymentReceived,
+} from '../utils/formatters';
+import { getGajTargets, getPaymentTargets } from '../utils/targets';
 
 interface TeamMemberDetailModalProps {
   isOpen: boolean;
@@ -75,8 +84,16 @@ export const TeamMemberDetailModal: React.FC<TeamMemberDetailModalProps> = ({
   );
 
   const bookedGaj = bookings.reduce((sum, l) => sum + parseGaj(l.size), 0);
-  const targetGaj = TEAM_TARGETS[memberName] || 50;
-  const percentAchieved = Math.round((bookedGaj / targetGaj) * 100);
+  const gajTargets = getGajTargets();
+  const paymentTargets = getPaymentTargets();
+
+  const targetGaj = gajTargets[memberName] || 50;
+  const percentAchieved = targetGaj > 0 ? Math.round((bookedGaj / targetGaj) * 100) : 0;
+
+  const targetPayment = paymentTargets[memberName] || 2500000;
+  const collectedPayment = bookings.reduce((sum, l) => sum + getLeadPaymentReceived(l), 0);
+  const percentPayment =
+    targetPayment > 0 ? Math.round((collectedPayment / targetPayment) * 100) : 0;
 
   const todayCallsCount = memberCalls.filter(
     (c) => c.timestamp.slice(0, 10) === todayStr
@@ -215,41 +232,92 @@ export const TeamMemberDetailModal: React.FC<TeamMemberDetailModalProps> = ({
             </div>
 
             <div className="bg-emerald-50/70 border border-emerald-200/80 p-3.5 rounded-xl">
-              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
-                Gaj Quota Status
+              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider flex items-center justify-between">
+                <span>Gaj Target</span>
+                <span className="text-emerald-700 font-black">{percentAchieved}%</span>
               </span>
-              <div className="text-2xl font-black text-emerald-950 mt-1">
+              <div className="text-xl sm:text-2xl font-black text-emerald-950 mt-1">
                 {bookedGaj} <span className="text-xs font-bold text-slate-500">/ {targetGaj} Gaj</span>
               </div>
-              <p className="text-[11px] text-emerald-700/80 mt-0.5">{percentAchieved}% of monthly target</p>
+              <p className="text-[11px] text-emerald-700/80 mt-0.5">Plot sales quota</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-white to-emerald-50/60 border border-emerald-300/80 p-3.5 rounded-xl shadow-xs">
+              <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider flex items-center justify-between">
+                <span className="flex items-center gap-0.5">
+                  <IndianRupee className="w-3 h-3 text-emerald-600" />
+                  <span>पेमेंट टारगेट</span>
+                </span>
+                <span className="text-emerald-700 font-black">{percentPayment}%</span>
+              </span>
+              <div className="text-xl sm:text-2xl font-black text-emerald-900 mt-1 truncate">
+                {formatINR(collectedPayment, true)}{' '}
+                <span className="text-xs font-semibold text-slate-500">
+                  / {formatINR(targetPayment, true)}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                {formatINR(collectedPayment)} प्राप्त
+              </p>
             </div>
           </div>
 
-          {/* Quota Progress Bar */}
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
-              <div className="flex items-center gap-1.5">
-                <Target className="w-4 h-4 text-blue-600" />
-                <span>Monthly Plot Sales Quota ({targetGaj} Gaj Benchmark)</span>
+          {/* Dual Quota Progress Bars: Gaj & Payment */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {/* Plot Area Target Bar */}
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div className="flex items-center justify-between text-xs font-semibold text-slate-700 mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-blue-600" />
+                  <span>Plot Quota ({targetGaj} Gaj)</span>
+                </div>
+                <span className="font-bold text-blue-700">{percentAchieved}%</span>
               </div>
-              <span className="font-bold text-blue-700">{percentAchieved}% Achieved</span>
+              <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    percentAchieved >= 100
+                      ? 'bg-emerald-500'
+                      : percentAchieved >= 60
+                      ? 'bg-blue-600'
+                      : 'bg-amber-500'
+                  }`}
+                  style={{ width: `${Math.min(percentAchieved, 100)}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-[11px] text-slate-400 mt-1">
+                <span>0 Gaj</span>
+                <span>{bookedGaj} Gaj Booked</span>
+                <span>Target: {targetGaj} Gaj</span>
+              </div>
             </div>
-            <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${
-                  percentAchieved >= 100
-                    ? 'bg-emerald-500'
-                    : percentAchieved >= 60
-                    ? 'bg-blue-600'
-                    : 'bg-amber-500'
-                }`}
-                style={{ width: `${Math.min(percentAchieved, 100)}%` }}
-              />
-            </div>
-            <div className="flex justify-between text-[11px] text-slate-400 mt-1">
-              <span>0 Gaj</span>
-              <span>{bookedGaj} Gaj Booked & Closed</span>
-              <span>Target: {targetGaj} Gaj</span>
+
+            {/* Payment Target Bar */}
+            <div className="bg-emerald-50/40 p-4 rounded-xl border border-emerald-200">
+              <div className="flex items-center justify-between text-xs font-semibold text-emerald-900 mb-1.5">
+                <div className="flex items-center gap-1.5">
+                  <IndianRupee className="w-4 h-4 text-emerald-600" />
+                  <span>पेमेंट टारगेट ({formatINR(targetPayment, true)})</span>
+                </div>
+                <span className="font-bold text-emerald-700">{percentPayment}%</span>
+              </div>
+              <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    percentPayment >= 100
+                      ? 'bg-emerald-500'
+                      : percentPayment >= 60
+                      ? 'bg-teal-600'
+                      : 'bg-emerald-600'
+                  }`}
+                  style={{ width: `${Math.min(percentPayment, 100)}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-[11px] text-slate-400 mt-1">
+                <span>₹0</span>
+                <span>{formatINR(collectedPayment, true)} Received</span>
+                <span>Target: {formatINR(targetPayment, true)}</span>
+              </div>
             </div>
           </div>
 

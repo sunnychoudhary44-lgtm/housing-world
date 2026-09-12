@@ -103,7 +103,139 @@
         }
       },
       "required": ["id", "salesperson", "outcome", "timestamp"]
+    },
+    "users": {
+      "title": "Users",
+      "description": "Registered CRM accounts with credentials, role, and contact information",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier of the user"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the user"
+        },
+        "mobile": {
+          "type": "string",
+          "description": "10-digit mobile number"
+        },
+        "username": {
+          "type": "string",
+          "description": "User ID or username chosen by user"
+        },
+        "password": {
+          "type": "string",
+          "description": "User account password"
+        },
+        "role": {
+          "type": "string",
+          "description": "Account role: admin or user"
+        },
+        "designation": {
+          "type": "string",
+          "description": "Job title or designation in company"
+        },
+        "avatarColor": {
+          "type": "string",
+          "description": "Tailwind color class for avatar badge"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO creation timestamp"
+        }
+      },
+      "required": ["id", "name", "username", "password", "role"]
+    },
+    "developers": {
+      "title": "Developers",
+      "description": "Real estate developers, builders, promoters, and corporate groups",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "name": { "type": "string", "description": "Developer name" },
+        "brandName": { "type": "string", "description": "Brand trade name" },
+        "reraNumber": { "type": "string", "description": "RERA registration number" },
+        "contactPerson": { "type": "string", "description": "Liaison or sales head" },
+        "contactPhone": { "type": "string", "description": "Official phone number" },
+        "contactEmail": { "type": "string", "description": "Official email address" },
+        "headOffice": { "type": "string", "description": "Head office location" },
+        "gstin": { "type": "string", "description": "GST registration number" },
+        "status": { "type": "string", "description": "Active or Inactive" },
+        "mandateType": { "type": "string", "description": "Exclusive or Preferred or Open" },
+        "commissionTerms": { "type": "string", "description": "Agreed commission / brokerage percentage" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "name", "contactPhone"]
+    },
+    "projects": {
+      "title": "Projects",
+      "description": "Real estate projects, towers, plotted developments, and commercial hubs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "name": { "type": "string", "description": "Project marketing title" },
+        "developerId": { "type": "string", "description": "Linked developer ID" },
+        "developerName": { "type": "string", "description": "Name of developer" },
+        "location": { "type": "string", "description": "Sector / micro-market location" },
+        "city": { "type": "string", "description": "City of project" },
+        "reraNumber": { "type": "string", "description": "Project RERA license" },
+        "projectType": { "type": "string", "description": "Residential, Plotted, Commercial, Villa" },
+        "stage": { "type": "string", "description": "Pre-Launch, Under Construction, Ready to Move" },
+        "landArea": { "type": "string", "description": "Land size e.g. 25 Acres" },
+        "totalUnits": { "type": "number", "description": "Total inventory units" },
+        "availableUnits": { "type": "number", "description": "Available unsold units" },
+        "blockedUnits": { "type": "number", "description": "Units currently on hold" },
+        "soldUnits": { "type": "number", "description": "Booked or sold units" },
+        "startingPrice": { "type": "number", "description": "Starting price in INR" },
+        "bspPerSqFt": { "type": "number", "description": "Base selling price per sq.ft or gaj" },
+        "configurations": { "type": "string", "description": "JSON array of available configurations" },
+        "possessionDate": { "type": "string", "description": "Estimated possession timeline" }
+      },
+      "required": ["id", "name", "developerName", "location", "projectType"]
+    },
+    "brokers": {
+      "title": "Brokers",
+      "description": "Channel partners, real estate brokers, sourcing agents, and firms",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "name": { "type": "string", "description": "Broker or principal partner name" },
+        "firmName": { "type": "string", "description": "Real estate agency name" },
+        "mobile": { "type": "string", "description": "10-digit mobile number" },
+        "email": { "type": "string", "description": "Broker email" },
+        "reraNumber": { "type": "string", "description": "Channel partner RERA certificate" },
+        "tier": { "type": "string", "description": "Platinum, Gold, Silver, Standard" },
+        "city": { "type": "string", "description": "Operating territory" },
+        "commissionRatePercent": { "type": "number", "description": "Brokerage commission percentage" },
+        "status": { "type": "string", "description": "Verified, Pending, Blocked" },
+        "totalBrokerageEarned": { "type": "number", "description": "Total commission earned in INR" },
+        "totalBrokeragePaid": { "type": "number", "description": "Total payout cleared in INR" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "name", "firmName", "mobile"]
+    },
+    "units": {
+      "title": "Units",
+      "description": "Individual inventory flats, plots, floors, and commercial units",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "projectId": { "type": "string", "description": "Associated project ID" },
+        "unitNumber": { "type": "string", "description": "Unit or flat or plot number" },
+        "towerOrBlock": { "type": "string", "description": "Tower, phase, or block name" },
+        "floor": { "type": "number", "description": "Floor level" },
+        "unitType": { "type": "string", "description": "Configuration e.g. 3 BHK or 150 Gaj" },
+        "sizeSqFtOrGaj": { "type": "string", "description": "Size measurement" },
+        "facing": { "type": "string", "description": "Facing orientation" },
+        "basePrice": { "type": "number", "description": "Base price in INR" },
+        "status": { "type": "string", "description": "Available, Blocked, Booked" },
+        "bookedByLeadName": { "type": "string", "description": "Client name if booked" },
+        "bookedByBrokerName": { "type": "string", "description": "Channel partner if sourced" }
+      },
+      "required": ["id", "projectId", "unitNumber", "status"]
     }
   },
-  "firestoreRules": "rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /leads/{leadId} {\n      allow read, write: if true;\n    }\n    match /calls/{callId} {\n      allow read, write: if true;\n    }\n  }\n}"
+  "firestoreRules": "rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /leads/{leadId} {\n      allow read, write: if true;\n    }\n    match /calls/{callId} {\n      allow read, write: if true;\n    }\n    match /users/{userId} {\n      allow read, write: if true;\n    }\n    match /developers/{devId} {\n      allow read, write: if true;\n    }\n    match /projects/{projId} {\n      allow read, write: if true;\n    }\n    match /brokers/{brokerId} {\n      allow read, write: if true;\n    }\n    match /units/{unitId} {\n      allow read, write: if true;\n    }\n  }\n}"
 }

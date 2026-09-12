@@ -31,13 +31,7 @@ export const SOURCES: LeadSource[] = [
   'Other',
 ];
 
-export const TEAM_MEMBERS: string[] = [
-  'Vishal',
-  'JP Gupta',
-  'Yashpal Ji',
-  'Sanjay Ji',
-  'Rahul',
-];
+export const TEAM_MEMBERS: string[] = [];
 
 export const DEFAULT_USERS: AuthUser[] = [
   {
@@ -47,68 +41,15 @@ export const DEFAULT_USERS: AuthUser[] = [
     username: 'admin',
     password: 'password123',
     role: 'admin',
-    designation: 'Director / System Admin',
+    designation: 'Director / Administrator',
     avatarColor: 'bg-amber-500',
-  },
-  {
-    id: 'user-vishal',
-    name: 'Vishal',
-    mobile: '9871111111',
-    username: 'vishal',
-    password: 'password123',
-    role: 'user',
-    designation: 'Sales Executive',
-    avatarColor: 'bg-blue-500',
-  },
-  {
-    id: 'user-jpgupta',
-    name: 'JP Gupta',
-    mobile: '9872222222',
-    username: 'jpgupta',
-    password: 'password123',
-    role: 'user',
-    designation: 'Senior Executive',
-    avatarColor: 'bg-emerald-500',
-  },
-  {
-    id: 'user-yashpal',
-    name: 'Yashpal Ji',
-    mobile: '9873333333',
-    username: 'yashpal',
-    password: 'password123',
-    role: 'user',
-    designation: 'Sales Executive',
-    avatarColor: 'bg-purple-500',
-  },
-  {
-    id: 'user-sanjay',
-    name: 'Sanjay Ji',
-    mobile: '9874444444',
-    username: 'sanjay',
-    password: 'password123',
-    role: 'user',
-    designation: 'Team Lead',
-    avatarColor: 'bg-rose-500',
-  },
-  {
-    id: 'user-rahul',
-    name: 'Rahul',
-    mobile: '9875555555',
-    username: 'rahul',
-    password: 'password123',
-    role: 'user',
-    designation: 'Telecaller',
-    avatarColor: 'bg-cyan-500',
   },
 ];
 
-export const TEAM_TARGETS: Record<string, number> = {
-  Vishal: 50,
-  'JP Gupta': 50,
-  'Yashpal Ji': 60,
-  'Sanjay Ji': 100,
-  Rahul: 50,
-};
+export const TEAM_TARGETS: Record<string, number> = {};
+
+// Monthly Payment / Collection targets in Rupees (₹)
+export const TEAM_PAYMENT_TARGETS: Record<string, number> = {};
 
 export const COMMON_PROJECTS = [
   'Nekpur',
@@ -144,7 +85,10 @@ function getOffsetISO(hoursOffset: number): string {
   return d.toISOString().slice(0, 16);
 }
 
-export const INITIAL_LEADS: Lead[] = [
+// Clean slate for production use: INITIAL_LEADS starts completely empty
+export const INITIAL_LEADS: Lead[] = [];
+
+export const SAMPLE_DEMO_LEADS: Lead[] = [
   {
     id: 101,
     name: 'Rameshwar Sharma',
@@ -203,6 +147,8 @@ export const INITIAL_LEADS: Lead[] = [
     followup: getOffsetISO(24),
     priority: 'Hot',
     remarks: 'Token amount ₹51,000 received. Registry date finalize karni hai.',
+    paymentReceived: 51000,
+    totalDealValue: 1500000,
     createdAt: new Date(Date.now() - 10 * 86400000).toISOString(),
   },
   {
@@ -233,6 +179,8 @@ export const INITIAL_LEADS: Lead[] = [
     followup: '',
     priority: 'Normal',
     remarks: 'Full payment received and registry done. Referral lead.',
+    paymentReceived: 2500000,
+    totalDealValue: 2500000,
     createdAt: new Date(Date.now() - 15 * 86400000).toISOString(),
   },
   {
@@ -370,7 +318,10 @@ function getRecentCallTime(minutesAgo: number): string {
   return new Date(Date.now() - minutesAgo * 60 * 1000).toISOString();
 }
 
-export const INITIAL_CALLS: CallLog[] = [
+// Clean slate for production use: INITIAL_CALLS starts completely empty
+export const INITIAL_CALLS: CallLog[] = [];
+
+export const SAMPLE_DEMO_CALLS: CallLog[] = [
   {
     id: 'call-1',
     leadId: 101,

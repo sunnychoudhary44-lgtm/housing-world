@@ -16,7 +16,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { Lead, LeadStatus, CallLog, CallOutcome, CallType, AuthUser } from '../types';
-import { CALL_OUTCOMES, TEAM_MEMBERS, COMMON_PROJECTS, STATUSES } from '../data/initialData';
+import { CALL_OUTCOMES, COMMON_PROJECTS, STATUSES } from '../data/initialData';
 import { cleanMobile, formatCallDuration, makePhoneCall } from '../utils/formatters';
 
 interface LogCallModalProps {
@@ -24,6 +24,7 @@ interface LogCallModalProps {
   onClose: () => void;
   leads: Lead[];
   currentUser?: AuthUser | null;
+  teamMembers?: string[];
   initialLead?: Lead | null;
   onSaveCall: (callData: Omit<CallLog, 'id'>, syncLead: boolean) => void;
 }
@@ -33,11 +34,12 @@ export const LogCallModal: React.FC<LogCallModalProps> = ({
   onClose,
   leads,
   currentUser,
+  teamMembers = [],
   initialLead,
   onSaveCall,
 }) => {
   const isUserRole = currentUser?.role === 'user';
-  const defaultSalesperson = isUserRole && currentUser?.name ? currentUser.name : TEAM_MEMBERS[0];
+  const defaultSalesperson = isUserRole && currentUser?.name ? currentUser.name : (teamMembers[0] || currentUser?.name || 'Sales Team');
 
   // Form state
   const [selectedLeadId, setSelectedLeadId] = useState<number | ''>('');
@@ -71,7 +73,7 @@ export const LogCallModal: React.FC<LogCallModalProps> = ({
         setSalesperson(
           isUserRole && currentUser?.name
             ? currentUser.name
-            : initialLead.salesperson || TEAM_MEMBERS[0]
+            : initialLead.salesperson || defaultSalesperson
         );
         setProject(initialLead.project || COMMON_PROJECTS[0]);
         setNewLeadStatus(
@@ -84,7 +86,7 @@ export const LogCallModal: React.FC<LogCallModalProps> = ({
         setSelectedLeadId('');
         setLeadName('');
         setMobile('');
-        setSalesperson(isUserRole && currentUser?.name ? currentUser.name : TEAM_MEMBERS[0]);
+        setSalesperson(defaultSalesperson);
         setProject(COMMON_PROJECTS[0]);
         setNewLeadStatus('Contacted');
         setNextFollowup('');
@@ -351,11 +353,13 @@ export const LogCallModal: React.FC<LogCallModalProps> = ({
                   onChange={(e) => setSalesperson(e.target.value)}
                   className="w-full text-xs sm:text-sm px-3 py-2 bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500"
                 >
-                  {TEAM_MEMBERS.map((tm) => (
-                    <option key={tm} value={tm}>
-                      {tm}
-                    </option>
-                  ))}
+                  {Array.from(new Set([...teamMembers, ...(salesperson ? [salesperson] : [])]))
+                    .filter(Boolean)
+                    .map((tm) => (
+                      <option key={tm} value={tm}>
+                        {tm}
+                      </option>
+                    ))}
                 </select>
               )}
             </div>

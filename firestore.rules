@@ -7,5 +7,26 @@ service cloud.firestore {
     match /calls/{callId} {
       allow read, write: if true;
     }
+    match /users/{userId} {
+      allow read, write: if true;
+    }
+    match /developers/{devId} {
+      allow read, write: if true;
+    }
+    match /projects/{projId} {
+      allow read, write: if true;
+    }
+    match /brokers/{brokerId} {
+      allow read, write: if true;
+    }
+    match /units/{unitId} {
+      allow read, write: if true;
+    }
+    match /site_visits/{visitId} {
+      allow read, write: if true;
+    }
+    match /cost_sheets/{sheetId} {
+      allow read, write: if true;
+    }
   }
 }

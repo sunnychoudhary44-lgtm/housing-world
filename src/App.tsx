@@ -1,6 +1,34 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { ActivePage, Lead, LeadStatus, CallLog, CallOutcome, CallType, AuthUser } from './types';
-import { INITIAL_LEADS, INITIAL_CALLS, DEFAULT_USERS } from './data/initialData';
+import {
+  ActivePage,
+  Lead,
+  LeadStatus,
+  CallLog,
+  CallOutcome,
+  CallType,
+  AuthUser,
+  Developer,
+  Project,
+  ProjectUnit,
+  Broker,
+  SiteVisit,
+  CostSheet,
+} from './types';
+import {
+  INITIAL_LEADS,
+  INITIAL_CALLS,
+  SAMPLE_DEMO_LEADS,
+  SAMPLE_DEMO_CALLS,
+  DEFAULT_USERS,
+} from './data/initialData';
+import {
+  INITIAL_DEVELOPERS,
+  INITIAL_PROJECTS,
+  INITIAL_UNITS,
+  INITIAL_BROKERS,
+  INITIAL_SITE_VISITS,
+  INITIAL_COST_SHEETS,
+} from './data/realEstateData';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { DashboardView } from './components/DashboardView';
@@ -10,6 +38,11 @@ import { FollowupsView } from './components/FollowupsView';
 import { TeamView } from './components/TeamView';
 import { ReportsView } from './components/ReportsView';
 import { CallTrackerView } from './components/CallTrackerView';
+import { DevelopersView } from './components/DevelopersView';
+import { ProjectsView } from './components/ProjectsView';
+import { BrokersView } from './components/BrokersView';
+import { SiteVisitsView } from './components/SiteVisitsView';
+import { CostSheetView } from './components/CostSheetView';
 import { WhatsAppTemplatesModal } from './components/WhatsAppTemplatesModal';
 import { LeadDetailModal } from './components/LeadDetailModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
@@ -18,13 +51,33 @@ import { LoginView } from './components/LoginView';
 import {
   subscribeToLeads,
   subscribeToCalls,
+  subscribeToUsers,
   saveLeadToCloud,
   bulkSaveLeadsToCloud,
   deleteLeadFromCloud,
   saveCallToCloud,
   deleteCallFromCloud,
-  seedIfEmpty,
+  clearAllDataFromCloud,
   resetFirestoreWithDemo,
+  subscribeToDevelopers,
+  saveDeveloperToCloud,
+  deleteDeveloperFromCloud,
+  subscribeToProjects,
+  saveProjectToCloud,
+  deleteProjectFromCloud,
+  subscribeToBrokers,
+  saveBrokerToCloud,
+  deleteBrokerFromCloud,
+  subscribeToUnits,
+  saveUnitToCloud,
+  deleteUnitFromCloud,
+  subscribeToSiteVisits,
+  saveSiteVisitToCloud,
+  deleteSiteVisitFromCloud,
+  subscribeToCostSheets,
+  saveCostSheetToCloud,
+  deleteCostSheetFromCloud,
+  seedRealEstateIfEmpty,
 } from './services/crmFirestore';
 import { CheckCircle2, Info, Crown, Lock, User, ShieldCheck } from 'lucide-react';
 
@@ -49,37 +102,117 @@ export default function App() {
     // Default to admin for instant test preview if needed, or prompt login
     return DEFAULT_USERS[0]; // Sunny Choudhary (Admin)
   });
-  // Load initial leads from localStorage with fallback to INITIAL_LEADS
+
+  // Load initial leads - starts completely clean for production use
   const [leads, setLeads] = useState<Lead[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          // Filter out old sample mock leads (101 to 112) so production starts clean
+          const realLeads = parsed.filter((l: Lead) => l.id < 101 || l.id > 112);
+          if (realLeads.length > 0) {
+            return realLeads;
+          }
         }
       }
     } catch (e) {
       console.error('Failed to parse saved leads from localStorage', e);
     }
-    return INITIAL_LEADS;
+    return [];
   });
 
-  // Load initial call logs from localStorage with fallback to INITIAL_CALLS
+  // Load initial call logs - starts completely clean for production use
   const [calls, setCalls] = useState<CallLog[]>(() => {
     try {
       const saved = localStorage.getItem(CALLS_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          const realCalls = parsed.filter((c: CallLog) => !c.id.startsWith('call-'));
+          if (realCalls.length > 0) {
+            return realCalls;
+          }
         }
       }
     } catch (e) {
       console.error('Failed to parse saved calls from localStorage', e);
     }
-    return INITIAL_CALLS;
+    return [];
   });
+
+  // Dynamic registered team users loaded from Firestore
+  const [users, setUsers] = useState<AuthUser[]>([]);
+
+  // Real Estate Suite State (Sell.Do)
+  const [developers, setDevelopers] = useState<Developer[]>(() => {
+    try {
+      const s = localStorage.getItem('hwcrm_developers');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_DEVELOPERS;
+  });
+
+  const [projects, setProjects] = useState<Project[]>(() => {
+    try {
+      const s = localStorage.getItem('hwcrm_projects');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_PROJECTS;
+  });
+
+  const [units, setUnits] = useState<ProjectUnit[]>(() => {
+    try {
+      const s = localStorage.getItem('hwcrm_units');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_UNITS;
+  });
+
+  const [brokers, setBrokers] = useState<Broker[]>(() => {
+    try {
+      const s = localStorage.getItem('hwcrm_brokers');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_BROKERS;
+  });
+
+  const [siteVisits, setSiteVisits] = useState<SiteVisit[]>(() => {
+    try {
+      const s = localStorage.getItem('hwcrm_site_visits');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_SITE_VISITS;
+  });
+
+  const [costSheets, setCostSheets] = useState<CostSheet[]>(() => {
+    try {
+      const s = localStorage.getItem('hwcrm_cost_sheets');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_COST_SHEETS;
+  });
+
+  const [developerFilterForProjects, setDeveloperFilterForProjects] = useState<string>('');
 
   const [isCloudConnected, setIsCloudConnected] = useState<boolean>(true);
   const [activePage, setActivePage] = useState<ActivePage>('dashboard');
@@ -108,19 +241,12 @@ export default function App() {
     }, 3500);
   };
 
-  // Setup Firestore real-time listeners and initial database seed
+  // Setup Firestore real-time listeners (Clean production sync)
   useEffect(() => {
-    // Attempt initial database seed if empty
-    seedIfEmpty(INITIAL_LEADS, INITIAL_CALLS).catch((err) => {
-      console.warn('Firestore initial seed note:', err);
-    });
-
     // Real-time synchronization for leads collection
     const unsubscribeLeads = subscribeToLeads(
       (cloudLeads) => {
-        if (cloudLeads && cloudLeads.length > 0) {
-          setLeads(cloudLeads);
-        }
+        setLeads(cloudLeads || []);
         setIsCloudConnected(true);
       },
       (err) => {
@@ -132,20 +258,135 @@ export default function App() {
     // Real-time synchronization for calls collection
     const unsubscribeCalls = subscribeToCalls(
       (cloudCalls) => {
-        if (cloudCalls && cloudCalls.length > 0) {
-          setCalls(cloudCalls);
-        }
+        setCalls(cloudCalls || []);
       },
       (err) => {
         console.warn('Firestore calls subscription note:', err);
       }
     );
 
+    // Real-time synchronization for registered users collection
+    const unsubscribeUsers = subscribeToUsers(
+      (cloudUsers) => {
+        setUsers(cloudUsers || []);
+      },
+      (err) => {
+        console.warn('Firestore users subscription note:', err);
+      }
+    );
+
+    // Real-time synchronization for Developers
+    const unsubscribeDevelopers = subscribeToDevelopers(
+      (cloudDevs) => {
+        if (cloudDevs && cloudDevs.length > 0) {
+          setDevelopers(cloudDevs);
+          try {
+            localStorage.setItem('hwcrm_developers', JSON.stringify(cloudDevs));
+          } catch (e) {}
+        }
+      },
+      (err) => console.warn('Developers subscription note:', err)
+    );
+
+    // Real-time synchronization for Projects
+    const unsubscribeProjects = subscribeToProjects(
+      (cloudProjects) => {
+        if (cloudProjects && cloudProjects.length > 0) {
+          setProjects(cloudProjects);
+          try {
+            localStorage.setItem('hwcrm_projects', JSON.stringify(cloudProjects));
+          } catch (e) {}
+        }
+      },
+      (err) => console.warn('Projects subscription note:', err)
+    );
+
+    // Real-time synchronization for Units
+    const unsubscribeUnits = subscribeToUnits(
+      (cloudUnits) => {
+        if (cloudUnits && cloudUnits.length > 0) {
+          setUnits(cloudUnits);
+          try {
+            localStorage.setItem('hwcrm_units', JSON.stringify(cloudUnits));
+          } catch (e) {}
+        }
+      },
+      (err) => console.warn('Units subscription note:', err)
+    );
+
+    // Real-time synchronization for Brokers
+    const unsubscribeBrokers = subscribeToBrokers(
+      (cloudBrokers) => {
+        if (cloudBrokers && cloudBrokers.length > 0) {
+          setBrokers(cloudBrokers);
+          try {
+            localStorage.setItem('hwcrm_brokers', JSON.stringify(cloudBrokers));
+          } catch (e) {}
+        }
+      },
+      (err) => console.warn('Brokers subscription note:', err)
+    );
+
+    // Real-time synchronization for Site Visits
+    const unsubscribeSiteVisits = subscribeToSiteVisits(
+      (cloudVisits) => {
+        if (cloudVisits && cloudVisits.length > 0) {
+          setSiteVisits(cloudVisits);
+          try {
+            localStorage.setItem('hwcrm_site_visits', JSON.stringify(cloudVisits));
+          } catch (e) {}
+        }
+      },
+      (err) => console.warn('Site Visits subscription note:', err)
+    );
+
+    // Real-time synchronization for Cost Sheets
+    const unsubscribeCostSheets = subscribeToCostSheets(
+      (cloudSheets) => {
+        if (cloudSheets && cloudSheets.length > 0) {
+          setCostSheets(cloudSheets);
+          try {
+            localStorage.setItem('hwcrm_cost_sheets', JSON.stringify(cloudSheets));
+          } catch (e) {}
+        }
+      },
+      (err) => console.warn('Cost Sheets subscription note:', err)
+    );
+
+    // Initialize initial seed data if collections are newly initialized
+    seedRealEstateIfEmpty(
+      INITIAL_DEVELOPERS,
+      INITIAL_PROJECTS,
+      INITIAL_UNITS,
+      INITIAL_BROKERS,
+      INITIAL_SITE_VISITS,
+      INITIAL_COST_SHEETS
+    );
+
     return () => {
       unsubscribeLeads();
       unsubscribeCalls();
+      unsubscribeUsers();
+      unsubscribeDevelopers();
+      unsubscribeProjects();
+      unsubscribeUnits();
+      unsubscribeBrokers();
+      unsubscribeSiteVisits();
+      unsubscribeCostSheets();
     };
   }, []);
+
+  // Compute live team members list dynamically across users collection and existing leads
+  const teamMembers = useMemo(() => {
+    const set = new Set<string>();
+    users.forEach((u) => {
+      if (u.name && u.name.trim()) set.add(u.name.trim());
+    });
+    leads.forEach((l) => {
+      if (l.salesperson && l.salesperson.trim()) set.add(l.salesperson.trim());
+    });
+    return Array.from(set).filter(Boolean);
+  }, [users, leads]);
 
   // Sync leads to localStorage as offline fallback
   useEffect(() => {
@@ -442,12 +683,193 @@ export default function App() {
     }
   };
 
-  // Reset to default sample real estate leads and calls
+  // Completely clear all leads and calls (clean slate for production usage)
+  const handleClearAllData = async () => {
+    try {
+      setLeads([]);
+      setCalls([]);
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(CALLS_STORAGE_KEY);
+      await clearAllDataFromCloud();
+      showToast('डेटाबेस पूरी तरह साफ़ हो गया है — अब आप अपनी असली लीड्स जोड़ सकते हैं!');
+    } catch (err) {
+      console.error('Failed to clear database', err);
+      showToast('डेटा साफ़ करने में त्रुटि आई। कृपया इंटरनेट कनेक्शन जांचें।');
+    }
+  };
+
+  // Optional: Load sample real estate demo data if requested
   const handleResetDemoData = () => {
-    setLeads(INITIAL_LEADS);
-    setCalls(INITIAL_CALLS);
-    resetFirestoreWithDemo(INITIAL_LEADS, INITIAL_CALLS).catch(console.error);
-    showToast('CRM data reset and synced to Firebase Cloud Firestore');
+    setLeads(SAMPLE_DEMO_LEADS);
+    setCalls(SAMPLE_DEMO_CALLS);
+    resetFirestoreWithDemo(SAMPLE_DEMO_LEADS, SAMPLE_DEMO_CALLS).catch(console.error);
+    showToast('सैंपल डेमो डेटा लोड और सिंक हो गया है');
+  };
+
+  // Real Estate: Developers handlers
+  const handleSaveDeveloper = (devData: Omit<Developer, 'id'> & { id?: string }) => {
+    const devId = devData.id || `dev-${Date.now()}`;
+    const fullDev: Developer = {
+      ...devData,
+      id: devId,
+      createdAt: devData.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setDevelopers((prev) => {
+      const idx = prev.findIndex((d) => d.id === devId);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = fullDev;
+        return next;
+      }
+      return [fullDev, ...prev];
+    });
+    saveDeveloperToCloud(fullDev).catch(console.error);
+    showToast(`Developer "${fullDev.name}" saved!`);
+  };
+
+  const handleDeleteDeveloper = (id: string) => {
+    setDevelopers((prev) => prev.filter((d) => d.id !== id));
+    deleteDeveloperFromCloud(id).catch(console.error);
+    showToast('Developer record removed.');
+  };
+
+  // Real Estate: Projects handlers
+  const handleSaveProject = (projectData: Omit<Project, 'id'> & { id?: string }) => {
+    const projId = projectData.id || `proj-${Date.now()}`;
+    const fullProj: Project = {
+      ...projectData,
+      id: projId,
+      createdAt: projectData.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setProjects((prev) => {
+      const idx = prev.findIndex((p) => p.id === projId);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = fullProj;
+        return next;
+      }
+      return [fullProj, ...prev];
+    });
+    saveProjectToCloud(fullProj).catch(console.error);
+    showToast(`Project "${fullProj.name}" saved!`);
+  };
+
+  const handleDeleteProject = (id: string) => {
+    setProjects((prev) => prev.filter((p) => p.id !== id));
+    deleteProjectFromCloud(id).catch(console.error);
+    showToast('Project removed.');
+  };
+
+  // Real Estate: Project Units handlers
+  const handleSaveUnit = (unitData: Omit<ProjectUnit, 'id'> & { id?: string }) => {
+    const unitId = unitData.id || `unit-${Date.now()}`;
+    const fullUnit: ProjectUnit = {
+      ...unitData,
+      id: unitId,
+      updatedAt: new Date().toISOString(),
+    };
+    setUnits((prev) => {
+      const idx = prev.findIndex((u) => u.id === unitId);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = fullUnit;
+        return next;
+      }
+      return [fullUnit, ...prev];
+    });
+    saveUnitToCloud(fullUnit).catch(console.error);
+    showToast(`Unit "${fullUnit.unitNumber}" updated (${fullUnit.status})`);
+  };
+
+  const handleDeleteUnit = (id: string) => {
+    setUnits((prev) => prev.filter((u) => u.id !== id));
+    deleteUnitFromCloud(id).catch(console.error);
+    showToast('Unit removed from project inventory.');
+  };
+
+  // Real Estate: Brokers / Channel Partners handlers
+  const handleSaveBroker = (brokerData: Omit<Broker, 'id'> & { id?: string }) => {
+    const brokerId = brokerData.id || `cp-${Date.now()}`;
+    const fullBroker: Broker = {
+      ...brokerData,
+      id: brokerId,
+      createdAt: brokerData.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setBrokers((prev) => {
+      const idx = prev.findIndex((b) => b.id === brokerId);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = fullBroker;
+        return next;
+      }
+      return [fullBroker, ...prev];
+    });
+    saveBrokerToCloud(fullBroker).catch(console.error);
+    showToast(`Channel Partner "${fullBroker.firmName}" saved!`);
+  };
+
+  const handleDeleteBroker = (id: string) => {
+    setBrokers((prev) => prev.filter((b) => b.id !== id));
+    deleteBrokerFromCloud(id).catch(console.error);
+    showToast('Channel Partner removed.');
+  };
+
+  // Real Estate: Site Visits handlers
+  const handleSaveSiteVisit = (visitData: Omit<SiteVisit, 'id'> & { id?: string }) => {
+    const visitId = visitData.id || `sv-${Date.now()}`;
+    const fullVisit: SiteVisit = {
+      ...visitData,
+      id: visitId,
+      createdAt: visitData.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setSiteVisits((prev) => {
+      const idx = prev.findIndex((v) => v.id === visitId);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = fullVisit;
+        return next;
+      }
+      return [fullVisit, ...prev];
+    });
+    saveSiteVisitToCloud(fullVisit).catch(console.error);
+    showToast(`Site visit for "${fullVisit.leadName}" scheduled/updated!`);
+  };
+
+  const handleDeleteSiteVisit = (id: string) => {
+    setSiteVisits((prev) => prev.filter((v) => v.id !== id));
+    deleteSiteVisitFromCloud(id).catch(console.error);
+    showToast('Site visit record removed.');
+  };
+
+  // Real Estate: Cost Sheets handlers
+  const handleSaveCostSheet = (sheetData: Omit<CostSheet, 'id'> & { id?: string }) => {
+    const sheetId = sheetData.id || `cs-${Date.now()}`;
+    const fullSheet: CostSheet = {
+      ...sheetData,
+      id: sheetId,
+      createdAt: sheetData.createdAt || new Date().toISOString(),
+    };
+    setCostSheets((prev) => {
+      const idx = prev.findIndex((s) => s.id === sheetId);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = fullSheet;
+        return next;
+      }
+      return [fullSheet, ...prev];
+    });
+    saveCostSheetToCloud(fullSheet).catch(console.error);
+    showToast(`Quotation for "${fullSheet.projectName}" generated & saved!`);
+  };
+
+  const handleDeleteCostSheet = (id: string) => {
+    setCostSheets((prev) => prev.filter((s) => s.id !== id));
+    deleteCostSheetFromCloud(id).catch(console.error);
+    showToast('Cost sheet quotation removed.');
   };
 
   // Start editing a lead
@@ -489,6 +911,7 @@ export default function App() {
           setWhatsAppLead(null);
           setIsWhatsAppModalOpen(true);
         }}
+        onClearAllData={handleClearAllData}
         onResetDemoData={handleResetDemoData}
         onOpenLogCallModal={() => handleOpenLogCallModal()}
         isCloudConnected={isCloudConnected}
@@ -555,6 +978,11 @@ export default function App() {
           leads={visibleLeads}
           calls={visibleCalls}
           currentUser={currentUser}
+          developersCount={developers.length}
+          projectsCount={projects.length}
+          brokersCount={brokers.length}
+          siteVisitsCount={siteVisits.length}
+          costSheetsCount={costSheets.length}
         />
 
         {/* Main Content Area */}
@@ -564,6 +992,7 @@ export default function App() {
               leads={visibleLeads}
               calls={visibleCalls}
               currentUser={currentUser}
+              users={users}
               onNavigate={(page) => {
                 if (page !== 'leads') {
                   setSalespersonFilterForLeads('');
@@ -583,6 +1012,7 @@ export default function App() {
           {activePage === 'leads' && (
             <LeadsView
               leads={visibleLeads}
+              teamMembers={teamMembers}
               initialSalespersonFilter={salespersonFilterForLeads}
               onClearSalespersonFilter={() => setSalespersonFilterForLeads('')}
               onAddNewLead={() => {
@@ -611,7 +1041,11 @@ export default function App() {
               editLeadData={editingLead}
               currentUser={currentUser}
               existingLeads={leads}
+              teamMembers={teamMembers}
               initialMode={leadFormInitialMode}
+              projects={projects}
+              developers={developers}
+              brokers={brokers}
               onSaveLead={handleSaveLead}
               onBulkImportLeads={handleBulkImportLeads}
               onCancel={() => {
@@ -626,8 +1060,11 @@ export default function App() {
             <CallTrackerView
               leads={visibleLeads}
               calls={visibleCalls}
+              teamMembers={teamMembers}
               onOpenLogModal={handleOpenLogCallModal}
               onDeleteCall={handleDeleteCall}
+              onViewLeadDetail={(lead) => setDetailLead(lead)}
+              onNavigate={(page) => setActivePage(page)}
             />
           )}
 
@@ -642,7 +1079,82 @@ export default function App() {
             />
           )}
 
-          {activePage === 'team' && <TeamView leads={leads} currentUser={currentUser} />}
+          {/* Sell.Do Real Estate Suite: Developers */}
+          {activePage === 'developers' && (
+            <DevelopersView
+              developers={developers}
+              projects={projects}
+              isAdmin={isAdmin}
+              onSaveDeveloper={handleSaveDeveloper}
+              onDeleteDeveloper={handleDeleteDeveloper}
+              onViewProjects={(devName) => {
+                setDeveloperFilterForProjects(devName);
+                setActivePage('projects');
+              }}
+            />
+          )}
+
+          {/* Sell.Do Real Estate Suite: Projects & Inventory */}
+          {activePage === 'projects' && (
+            <ProjectsView
+              projects={projects}
+              developers={developers}
+              units={units}
+              leads={visibleLeads}
+              isAdmin={isAdmin}
+              initialDeveloperFilter={developerFilterForProjects}
+              onClearDeveloperFilter={() => setDeveloperFilterForProjects('')}
+              onSaveProject={handleSaveProject}
+              onDeleteProject={handleDeleteProject}
+              onSaveUnit={handleSaveUnit}
+              onDeleteUnit={handleDeleteUnit}
+              onAddLeadForProject={(projName) => {
+                setEditingLeadId(null);
+                setLeadFormInitialMode('manual');
+                setActivePage('add');
+              }}
+            />
+          )}
+
+          {/* Sell.Do Real Estate Suite: Brokers & Channel Partners */}
+          {activePage === 'brokers' && (
+            <BrokersView
+              brokers={brokers}
+              leads={visibleLeads}
+              isAdmin={isAdmin}
+              onSaveBroker={handleSaveBroker}
+              onDeleteBroker={handleDeleteBroker}
+            />
+          )}
+
+          {/* Sell.Do Real Estate Suite: Site Visits Hub */}
+          {activePage === 'site_visits' && (
+            <SiteVisitsView
+              siteVisits={siteVisits}
+              projects={projects}
+              leads={visibleLeads}
+              currentUser={currentUser || DEFAULT_USERS[0]}
+              isAdmin={isAdmin}
+              onSaveSiteVisit={handleSaveSiteVisit}
+              onDeleteSiteVisit={handleDeleteSiteVisit}
+              onUpdateLeadStatus={handleUpdateLeadStatus}
+            />
+          )}
+
+          {/* Sell.Do Real Estate Suite: Cost Sheets & Quotations */}
+          {activePage === 'cost_sheets' && (
+            <CostSheetView
+              costSheets={costSheets}
+              projects={projects}
+              leads={visibleLeads}
+              currentUser={currentUser || DEFAULT_USERS[0]}
+              isAdmin={isAdmin}
+              onSaveCostSheet={handleSaveCostSheet}
+              onDeleteCostSheet={handleDeleteCostSheet}
+            />
+          )}
+
+          {activePage === 'team' && <TeamView leads={leads} currentUser={currentUser} users={users} />}
 
           {activePage === 'reports' && <ReportsView leads={visibleLeads} />}
         </main>
@@ -681,6 +1193,7 @@ export default function App() {
         initialLead={callTargetLead}
         leads={visibleLeads}
         currentUser={currentUser}
+        teamMembers={teamMembers}
       />
 
       {/* Delete Confirmation Modal */}

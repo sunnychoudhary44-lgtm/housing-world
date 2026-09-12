@@ -1,6 +1,6 @@
 {
   "name": "Housing Worlds — Lead CRM",
-  "description": "Real estate lead management, follow-ups, team targets, and performance tracking CRM for Housing Worlds.",
+  "description": "Sell.Do inspired Real-Estate CRM for Developers, Projects & Unit Inventory, Channel Partners (Brokers), and Lead Management.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

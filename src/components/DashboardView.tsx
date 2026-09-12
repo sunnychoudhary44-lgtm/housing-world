@@ -23,16 +23,26 @@ import {
   TrendingUp,
   Award,
   Phone,
+  IndianRupee,
 } from 'lucide-react';
 import { ActivePage, Lead, CallLog, AuthUser } from '../types';
-import { TEAM_MEMBERS, DEFAULT_USERS, TEAM_TARGETS } from '../data/initialData';
-import { fmt, openWhatsApp, makePhoneCall, getFollowupTiming, parseGaj } from '../utils/formatters';
+import {
+  fmt,
+  openWhatsApp,
+  makePhoneCall,
+  getFollowupTiming,
+  parseGaj,
+  formatINR,
+  getLeadPaymentReceived,
+} from '../utils/formatters';
+import { getGajTargets, getPaymentTargets } from '../utils/targets';
 import { TeamMemberDetailModal } from './TeamMemberDetailModal';
 
 interface DashboardViewProps {
   leads: Lead[];
   calls?: CallLog[];
   currentUser?: AuthUser | null;
+  users?: AuthUser[];
   onNavigate: (page: ActivePage) => void;
   onEditLead: (id: number) => void;
   onViewLeadDetail: (lead: Lead) => void;
@@ -44,6 +54,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   leads,
   calls = [],
   currentUser,
+  users = [],
   onNavigate,
   onEditLead,
   onViewLeadDetail,
@@ -58,23 +69,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const todayStr = new Date().toISOString().slice(0, 10);
   const nowIso = new Date().toISOString().slice(0, 16);
 
-  // Compile list of all team members (from TEAM_MEMBERS, DEFAULT_USERS, and distinct from leads)
+  // Compile list of all team members dynamically from users collection & leads' salespersons
   const allTeamMembers = useMemo(() => {
     const set = new Set<string>();
-    TEAM_MEMBERS.forEach((m) => set.add(m));
-    DEFAULT_USERS.filter((u) => u.role === 'user').forEach((u) => set.add(u.name));
+    (users || []).forEach((u) => {
+      if (u.name && u.name.trim()) set.add(u.name.trim());
+    });
     leads.forEach((l) => {
       if (l.salesperson && l.salesperson.trim()) {
         set.add(l.salesperson.trim());
       }
     });
     return Array.from(set);
-  }, [leads]);
+  }, [users, leads]);
 
   // Compute team member summaries for the Admin selector list
   const teamMemberStats = useMemo(() => {
     return allTeamMembers.map((name) => {
-      const userMeta = DEFAULT_USERS.find(
+      const userMeta = (users || []).find(
         (u) => u.name.toLowerCase() === name.toLowerCase()
       );
       const mLeads = leads.filter(
@@ -99,8 +111,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         .filter((l) => l.status === 'Booking' || l.status === 'Closed')
         .reduce((sum, l) => sum + parseGaj(l.size), 0);
 
-      const mTarget = TEAM_TARGETS[name] || 50;
-      const mPercent = Math.round((mBooked / mTarget) * 100);
+      const gajTargets = getGajTargets();
+      const paymentTargets = getPaymentTargets();
+
+      const mTarget = gajTargets[name] || 50;
+      const mPercent = mTarget > 0 ? Math.round((mBooked / mTarget) * 100) : 0;
+
+      const mPaymentTarget = paymentTargets[name] || 2500000;
+      const mPaymentCollected = mLeads
+        .filter((l) => l.status === 'Booking' || l.status === 'Closed')
+        .reduce((sum, l) => sum + getLeadPaymentReceived(l), 0);
+      const mPaymentPercent =
+        mPaymentTarget > 0 ? Math.round((mPaymentCollected / mPaymentTarget) * 100) : 0;
 
       return {
         name,
@@ -111,6 +133,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         bookedGaj: mBooked,
         targetGaj: mTarget,
         percentAchieved: mPercent,
+        paymentTarget: mPaymentTarget,
+        paymentCollected: mPaymentCollected,
+        paymentPercent: mPaymentPercent,
         callsCount: mCalls.length,
       };
     });
@@ -174,6 +199,24 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const bookedGajTotal = activeLeads
     .filter((l) => l.status === 'Booking' || l.status === 'Closed')
     .reduce((sum, l) => sum + parseGaj(l.size), 0);
+
+  const totalPaymentCollected = useMemo(() => {
+    return activeLeads
+      .filter((l) => ['Booking', 'Closed'].includes(l.status))
+      .reduce((sum, l) => sum + getLeadPaymentReceived(l), 0);
+  }, [activeLeads]);
+
+  const paymentTargetsMap = useMemo(() => getPaymentTargets(), []);
+
+  const totalPaymentTarget = useMemo(() => {
+    if (selectedMember) {
+      return paymentTargetsMap[selectedMember] || 2500000;
+    }
+    return (Object.values(paymentTargetsMap) as number[]).reduce((a, b) => a + b, 0);
+  }, [selectedMember, paymentTargetsMap]);
+
+  const paymentPercentAchieved =
+    totalPaymentTarget > 0 ? Math.round((totalPaymentCollected / totalPaymentTarget) * 100) : 0;
 
   const todayCallsCount = activeCalls.filter(
     (c) => c.timestamp.slice(0, 10) === todayStr
@@ -256,6 +299,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       onClick: () => onNavigate('reports'),
     },
     {
+      id: 'stat-payment-target',
+      label: selectedMember ? `${selectedMember}'s Payment Target` : 'Payment Target & Collection',
+      value: formatINR(totalPaymentCollected, true),
+      sub: `Target: ${formatINR(totalPaymentTarget, true)} (${paymentPercentAchieved}% done)`,
+      icon: <IndianRupee className="w-5 h-5 text-emerald-600" />,
+      bg: 'bg-emerald-50/80 border-emerald-300/80 shadow-2xs',
+      textColor: 'text-emerald-950 font-black',
+      onClick: () => onNavigate('team'),
+    },
+    {
       id: 'stat-calls-target',
       label: selectedMember ? `${selectedMember}'s Calls` : 'Call Tracker (50/day)',
       value: todayCallsCount > 0 ? `${todayCallsCount} Calls Today` : '50 / day',
@@ -266,18 +319,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       bg: 'bg-sky-50/80 border-sky-200/70',
       textColor: 'text-sky-900',
       onClick: () => onNavigate('calls'),
-    },
-    {
-      id: 'stat-visits-target',
-      label: selectedMember ? `${selectedMember}'s Quota` : '2 Site Visits Target',
-      value: selectedMember ? `${selectedMemberStats?.percentAchieved || 0}% Done` : '2 / day',
-      sub: selectedMember
-        ? `Target: ${selectedMemberStats?.targetGaj || 50} Gaj`
-        : 'Daily weekend push',
-      icon: <Compass className="w-5 h-5 text-teal-600" />,
-      bg: 'bg-teal-50/80 border-teal-200/70',
-      textColor: 'text-teal-900',
-      onClick: () => onNavigate('team'),
     },
   ];
 
@@ -480,9 +521,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         ? `${m.overdueFollowups} Due`
                         : `${m.todayFollowups} Today`}
                     </span>
-                    <span className="font-bold text-emerald-600">
-                      {m.bookedGaj} Gaj
+                    <span className="font-bold text-emerald-700">
+                      {formatINR(m.paymentCollected, true)}
                     </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono mt-0.5">
+                    <span>{m.bookedGaj} Gaj</span>
+                    <span>{m.paymentPercent}% Pay</span>
                   </div>
                 </div>
               );
@@ -538,8 +583,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     <span>•</span>
                     <span>
                       🏆 <strong>{selectedMemberStats.bookedGaj}</strong> /{' '}
-                      {selectedMemberStats.targetGaj} Gaj (
-                      {selectedMemberStats.percentAchieved}% Quota)
+                      {selectedMemberStats.targetGaj} Gaj ({selectedMemberStats.percentAchieved}% Quota)
+                    </span>
+                    <span>•</span>
+                    <span className="text-emerald-800 font-semibold flex items-center gap-1">
+                      <IndianRupee className="w-3 h-3 text-emerald-600" />
+                      <span>
+                        पेमेंट: <strong>{formatINR(selectedMemberStats.paymentCollected, true)}</strong> /{' '}
+                        {formatINR(selectedMemberStats.paymentTarget, true)} ({selectedMemberStats.paymentPercent}%)
+                      </span>
                     </span>
                     <span>•</span>
                     <span>
@@ -804,7 +856,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           isOpen={true}
           onClose={() => setInspectingMemberModal(null)}
           memberName={inspectingMemberModal}
-          memberUser={DEFAULT_USERS.find(
+          memberUser={(users || []).find(
             (u) => u.name.toLowerCase() === inspectingMemberModal.toLowerCase()
           )}
           leads={leads}

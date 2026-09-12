@@ -15,9 +15,18 @@ import {
   Clock,
   FileText,
   CheckCircle2,
+  IndianRupee,
 } from 'lucide-react';
 import { Lead, CallLog } from '../types';
-import { fmt, openWhatsApp, makePhoneCall, getFollowupTiming, formatCallDuration } from '../utils/formatters';
+import {
+  fmt,
+  openWhatsApp,
+  makePhoneCall,
+  getFollowupTiming,
+  formatCallDuration,
+  formatINR,
+  getLeadPaymentReceived,
+} from '../utils/formatters';
 
 interface LeadDetailModalProps {
   lead: Lead | null;
@@ -201,6 +210,47 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Payment & Target Contribution Card */}
+          {(() => {
+            const paymentAmt = getLeadPaymentReceived(lead);
+            if (
+              paymentAmt > 0 ||
+              lead.totalDealValue ||
+              lead.status === 'Booking' ||
+              lead.status === 'Closed'
+            ) {
+              return (
+                <div className="p-3.5 bg-gradient-to-r from-emerald-50/90 to-teal-50/70 rounded-xl border border-emerald-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                      <IndianRupee className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
+                        पेमेंट व टोकन कलेक्शन
+                      </div>
+                      <div className="text-base sm:text-lg font-black text-emerald-950">
+                        {formatINR(paymentAmt)}{' '}
+                        <span className="text-xs font-semibold text-slate-500">
+                          {lead.totalDealValue ? `/ डील वैल्यू ${formatINR(lead.totalDealValue)}` : ''}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900">
+                      टारगेट में शामिल
+                    </span>
+                    <p className="text-[11px] text-emerald-700 mt-0.5 font-medium">
+                      {lead.salesperson ? `${lead.salesperson} के टारगेट में काउंटेड` : 'सेल्स टीम टारगेट'}
+                    </p>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })()}
 
           {/* Remarks Section */}
           <div>

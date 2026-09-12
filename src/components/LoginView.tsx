@@ -1,133 +1,165 @@
 import React, { useState, useEffect } from 'react';
 import {
   Shield,
-  Smartphone,
   KeyRound,
-  ArrowRight,
   CheckCircle2,
   Lock,
   User,
   Crown,
   Sparkles,
-  RefreshCw,
   Building2,
-  Users2,
   Eye,
   EyeOff,
   AlertCircle,
+  UserPlus,
+  ArrowRight,
+  Phone,
+  Briefcase,
 } from 'lucide-react';
 import { AuthUser, UserRole } from '../types';
 import { DEFAULT_USERS } from '../data/initialData';
+import { saveUserToCloud, getUsersFromCloud } from '../services/crmFirestore';
 
 interface LoginViewProps {
   onLoginSuccess: (user: AuthUser) => void;
+  registeredUsers?: AuthUser[];
+  onRegisterUser?: (user: AuthUser) => Promise<void>;
 }
 
-export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
-  // Login Mode: 'password' (Default as requested) or 'otp'
-  const [authMode, setAuthMode] = useState<'password' | 'otp'>('password');
-  const [selectedRole, setSelectedRole] = useState<UserRole>('admin');
+const AVATAR_COLORS = [
+  'bg-blue-600',
+  'bg-indigo-600',
+  'bg-emerald-600',
+  'bg-purple-600',
+  'bg-rose-600',
+  'bg-amber-600',
+  'bg-cyan-600',
+  'bg-teal-600',
+];
 
-  // ID & Password State
+export const LoginView: React.FC<LoginViewProps> = ({
+  onLoginSuccess,
+  registeredUsers = [],
+  onRegisterUser,
+}) => {
+  // Mode: 'login' (लॉगिन) or 'register' (नया ID & पासवर्ड बनाएं)
+  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
+
+  // Login Form States
   const [loginId, setLoginId] = useState('admin');
   const [password, setPassword] = useState('password123');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-
-  // OTP State (Fallback / Alternative)
-  const [mobileNumber, setMobileNumber] = useState('');
-  const [userName, setUserName] = useState('');
-  const [step, setStep] = useState<'mobile' | 'otp'>('mobile');
-  const [otp, setOtp] = useState('');
-  const [generatedOtp, setGeneratedOtp] = useState('');
-  const [resendTimer, setResendTimer] = useState(30);
-  const [isSimulatingSms, setIsSimulatingSms] = useState(false);
-
-  const [errorMsg, setErrorMsg] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  // Load remembered user if any
+  // Register Form States (User khud apna ID aur Password generate karega)
+  const [regName, setRegName] = useState('');
+  const [regMobile, setRegMobile] = useState('');
+  const [regUsername, setRegUsername] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [regDesignation, setRegDesignation] = useState('Sales Executive');
+  const [regRole, setRegRole] = useState<UserRole>('user');
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+
+  // Local state of users combined with registeredUsers
+  const [allKnownUsers, setAllKnownUsers] = useState<AuthUser[]>([]);
+
+  // Load remembered user and cloud users on mount
   useEffect(() => {
     try {
       const savedId = localStorage.getItem('hw_crm_remembered_id');
       if (savedId) {
         setLoginId(savedId);
-        const matched = DEFAULT_USERS.find(
-          (u) =>
-            u.username?.toLowerCase() === savedId.toLowerCase() ||
-            u.mobile === savedId ||
-            u.name.toLowerCase() === savedId.toLowerCase()
-        );
-        if (matched) {
-          setSelectedRole(matched.role);
-        }
       }
     } catch (_) {}
+
+    // Load registered users from cloud
+    getUsersFromCloud()
+      .then((cloudUsers) => {
+        if (cloudUsers && cloudUsers.length > 0) {
+          setAllKnownUsers(cloudUsers);
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load users on login screen:', err);
+      });
   }, []);
 
-  // Timer countdown for OTP resend
+  // Update known users if registeredUsers prop changes
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (step === 'otp' && resendTimer > 0) {
-      interval = setInterval(() => {
-        setResendTimer((prev) => prev - 1);
-      }, 1000);
+    if (registeredUsers && registeredUsers.length > 0) {
+      setAllKnownUsers((prev) => {
+        const map = new Map<string, AuthUser>();
+        DEFAULT_USERS.forEach((u) => map.set(u.id, u));
+        prev.forEach((u) => map.set(u.id, u));
+        registeredUsers.forEach((u) => map.set(u.id, u));
+        return Array.from(map.values());
+      });
     }
-    return () => clearInterval(interval);
-  }, [step, resendTimer]);
+  }, [registeredUsers]);
 
-  // Clean mobile digits for OTP
-  const handleMobileChange = (val: string) => {
-    const cleaned = val.replace(/\D/g, '').slice(0, 10);
-    setMobileNumber(cleaned);
-    setErrorMsg('');
-
-    // Check if entered number matches an existing user in DEFAULT_USERS
-    const matched = DEFAULT_USERS.find((u) => u.mobile === cleaned);
-    if (matched) {
-      setSelectedRole(matched.role);
-      setUserName(matched.name);
-    }
-  };
-
-  // Handle Login with ID and Password
-  const handlePasswordLogin = (e?: React.FormEvent) => {
+  // Handle Login
+  const handleLoginSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMsg('');
+    setSuccessMsg('');
 
-    const cleanId = loginId.trim();
+    const cleanId = loginId.trim().toLowerCase();
     const cleanPass = password.trim();
 
     if (!cleanId) {
-      setErrorMsg('कृपया अपनी यूज़र आईडी, यूजरनेम या मोबाइल नंबर दर्ज करें (Please enter User ID or Mobile).');
+      setErrorMsg('कृपया अपनी यूज़र ID, यूजरनेम या मोबाइल नंबर दर्ज करें।');
       return;
     }
 
     if (!cleanPass) {
-      setErrorMsg('कृपया अपना पासवर्ड दर्ज करें (Please enter Password).');
+      setErrorMsg('कृपया अपना पासवर्ड दर्ज करें।');
       return;
     }
 
     setIsLoggingIn(true);
 
-    setTimeout(() => {
-      // Find matching user from DEFAULT_USERS
-      const matched = DEFAULT_USERS.find(
+    try {
+      // 1. Check in all known users (including default admin and loaded cloud users)
+      let matched = allKnownUsers.find(
         (u) =>
-          u.username?.toLowerCase() === cleanId.toLowerCase() ||
+          u.username?.toLowerCase() === cleanId ||
           u.mobile === cleanId.replace(/\D/g, '') ||
-          u.id.toLowerCase() === cleanId.toLowerCase() ||
-          u.name.toLowerCase() === cleanId.toLowerCase()
+          u.id.toLowerCase() === cleanId ||
+          u.name.toLowerCase() === cleanId
       );
 
+      // 2. Check default master admin
+      if (!matched) {
+        matched = DEFAULT_USERS.find(
+          (u) =>
+            u.username?.toLowerCase() === cleanId ||
+            u.mobile === cleanId.replace(/\D/g, '')
+        );
+      }
+
+      // 3. If still not matched, fetch latest from Firestore in case they just registered on another tab
+      if (!matched) {
+        const latestUsers = await getUsersFromCloud();
+        matched = latestUsers.find(
+          (u) =>
+            u.username?.toLowerCase() === cleanId ||
+            u.mobile === cleanId.replace(/\D/g, '') ||
+            u.id.toLowerCase() === cleanId ||
+            u.name.toLowerCase() === cleanId
+        );
+      }
+
       if (matched) {
-        // Check password
         const expectedPass = matched.password || 'password123';
         const isMasterPass =
           cleanPass === 'password123' ||
           cleanPass === 'admin123' ||
-          cleanPass === '123456' ||
-          cleanPass === 'admin';
+          cleanPass === '123456';
 
         if (cleanPass === expectedPass || isMasterPass) {
           if (rememberMe) {
@@ -140,284 +172,215 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
           return;
         } else {
           setIsLoggingIn(false);
-          setErrorMsg('गलत पासवर्ड! (Incorrect Password). कृपया सही पासवर्ड दर्ज करें।');
+          setErrorMsg('गलत पासवर्ड! कृपया सही पासवर्ड दर्ज करें।');
           return;
         }
       }
 
-      // If user not in default list, allow creating custom session if role is selected and password >= 4 chars
-      if (cleanPass.length >= 4) {
-        const customUser: AuthUser = {
-          id: `user-${Date.now()}`,
-          name: cleanId,
-          username: cleanId.toLowerCase(),
-          mobile: cleanId.match(/^\d{10}$/) ? cleanId : '9876599999',
-          role: selectedRole,
-          designation: selectedRole === 'admin' ? 'System Administrator' : 'Sales Executive',
-          avatarColor: selectedRole === 'admin' ? 'bg-amber-500' : 'bg-blue-500',
-        };
-        setIsLoggingIn(false);
-        onLoginSuccess(customUser);
-        return;
-      }
-
+      // If user not found at all
       setIsLoggingIn(false);
-      setErrorMsg('यूज़र आईडी या पासवर्ड अमान्य है। कृपया नीचे दिए गए Quick Demo अकाउंट से लॉगिन करें।');
-    }, 150);
+      setErrorMsg(
+        'यह यूज़र ID पंजीकृत नहीं है। कृपया सही ID दर्ज करें या ऊपर "नया ID व पासवर्ड बनाएं" पर क्लिक करके नया अकाउंट बनाएं।'
+      );
+    } catch (err) {
+      console.error('Login error', err);
+      setIsLoggingIn(false);
+      setErrorMsg('लॉगिन करने में त्रुटि आई। कृपया पुनः प्रयास करें।');
+    }
   };
 
-  // Generate and send OTP (Secondary mode)
-  const handleSendOtp = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  // Handle Generate / Register New User ID and Password
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setErrorMsg('');
+    setSuccessMsg('');
 
-    if (mobileNumber.length !== 10) {
-      setErrorMsg('कृपया सही 10-अंकों का मोबाइल नंबर दर्ज करें (Enter 10-digit mobile number).');
+    const cleanName = regName.trim();
+    const cleanMobile = regMobile.replace(/\D/g, '').trim();
+    const cleanUsername = regUsername.trim().toLowerCase().replace(/\s+/g, '');
+    const cleanPassword = regPassword.trim();
+    const cleanDesignation = regDesignation.trim();
+
+    if (!cleanName) {
+      setErrorMsg('कृपया अपना पूरा नाम दर्ज करें (Enter Full Name)।');
       return;
     }
 
-    if (selectedRole === 'user' && !userName.trim()) {
-      const matched = DEFAULT_USERS.find((u) => u.mobile === mobileNumber);
-      if (!matched) {
-        setErrorMsg('कृपया अपना नाम दर्ज करें (Please enter your name).');
+    if (cleanMobile.length !== 10) {
+      setErrorMsg('कृपया 10-अंकों का मान्य मोबाइल नंबर दर्ज करें (Enter 10-digit mobile)।');
+      return;
+    }
+
+    if (!cleanUsername || cleanUsername.length < 3) {
+      setErrorMsg('यूज़र ID कम से कम 3 अक्षरों की होनी चाहिए (Username must be at least 3 characters)।');
+      return;
+    }
+
+    if (!cleanPassword || cleanPassword.length < 4) {
+      setErrorMsg('पासवर्ड कम से कम 4 अक्षरों का होना चाहिए (Password must be at least 4 characters)।');
+      return;
+    }
+
+    setIsRegistering(true);
+
+    try {
+      // Check if username or mobile already exists
+      const latestUsers = await getUsersFromCloud();
+      const existingUser = latestUsers.find(
+        (u) =>
+          u.username?.toLowerCase() === cleanUsername ||
+          u.mobile === cleanMobile
+      );
+
+      if (existingUser) {
+        setIsRegistering(false);
+        setErrorMsg(
+          `यूज़र ID "${cleanUsername}" या मोबाइल "${cleanMobile}" पहले से पंजीकृत है। कृपया अन्य ID चुनें या लॉगिन करें।`
+        );
         return;
       }
+
+      // Pick random avatar color
+      const colorIndex = Math.floor(Math.random() * AVATAR_COLORS.length);
+      const avatarColor = regRole === 'admin' ? 'bg-amber-500' : AVATAR_COLORS[colorIndex];
+
+      const newUser: AuthUser = {
+        id: `user-${Date.now()}`,
+        name: cleanName,
+        mobile: cleanMobile,
+        username: cleanUsername,
+        password: cleanPassword,
+        role: regRole,
+        designation: cleanDesignation || (regRole === 'admin' ? 'Director / Admin' : 'Sales Executive'),
+        avatarColor,
+        createdAt: new Date().toISOString(),
+      };
+
+      // 1. Save to Firestore Cloud Database
+      await saveUserToCloud(newUser);
+
+      // 2. Notify parent if handler provided
+      if (onRegisterUser) {
+        await onRegisterUser(newUser);
+      }
+
+      // 3. Save remembered ID
+      try {
+        localStorage.setItem('hw_crm_remembered_id', cleanUsername);
+      } catch (_) {}
+
+      setSuccessMsg(`🎉 बधाई हो ${cleanName}! आपकी यूज़र ID "${cleanUsername}" सफलतापूर्वक बन गई है।`);
+      setIsRegistering(false);
+
+      // Auto login after 600ms
+      setTimeout(() => {
+        onLoginSuccess(newUser);
+      }, 700);
+    } catch (err) {
+      console.error('Registration failed:', err);
+      setIsRegistering(false);
+      setErrorMsg('अकाउंट बनाने में त्रुटि आई। कृपया इंटरनेट कनेक्शन जांचें और पुनः प्रयास करें।');
     }
-
-    // Generate random 4-digit OTP
-    const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
-    setGeneratedOtp(newOtp);
-    setOtp('');
-    setStep('otp');
-    setResendTimer(30);
-    setIsSimulatingSms(true);
-  };
-
-  // One-click quick demo login selector
-  const handleSelectQuickDemo = (user: AuthUser) => {
-    setSelectedRole(user.role);
-    setErrorMsg('');
-
-    if (authMode === 'password') {
-      setLoginId(user.username || user.mobile);
-      setPassword(user.password || 'password123');
-      // Instant login for effortless experience
-      onLoginSuccess(user);
-    } else {
-      setMobileNumber(user.mobile);
-      setUserName(user.name);
-      const newOtp = Math.floor(1000 + Math.random() * 9000).toString();
-      setGeneratedOtp(newOtp);
-      setOtp(newOtp);
-      setStep('otp');
-      setResendTimer(30);
-      setIsSimulatingSms(true);
-    }
-  };
-
-  // Verify OTP and complete login
-  const handleVerifyOtp = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    setErrorMsg('');
-
-    if (otp.trim() !== generatedOtp) {
-      setErrorMsg('अमान्य OTP! कृपया स्क्रीन पर आया OTP दर्ज करें (Invalid OTP).');
-      return;
-    }
-
-    const matched = DEFAULT_USERS.find((u) => u.mobile === mobileNumber);
-    const loggedInUser: AuthUser = matched
-      ? { ...matched, role: selectedRole }
-      : {
-          id: `user-${Date.now()}`,
-          name: userName.trim() || (selectedRole === 'admin' ? 'Admin User' : `User ${mobileNumber.slice(-4)}`),
-          mobile: mobileNumber,
-          role: selectedRole,
-          designation: selectedRole === 'admin' ? 'System Administrator' : 'Sales Executive',
-          avatarColor: selectedRole === 'admin' ? 'bg-amber-500' : 'bg-blue-500',
-        };
-
-    onLoginSuccess(loggedInUser);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 selection:bg-blue-500 selection:text-white relative overflow-hidden">
-      {/* Background glowing ambient circles */}
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center p-4 selection:bg-blue-500 selection:text-white relative overflow-hidden font-sans">
+      {/* Background ambient lighting */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Main Login Card */}
+      {/* Main Container Card */}
       <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-10">
         {/* Brand Banner */}
-        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 border-b border-slate-800 text-center relative">
-          <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-3xl shadow-lg shadow-blue-500/20 mb-3 border border-blue-400/30">
+        <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-5 border-b border-slate-800 text-center relative">
+          <div className="w-12 h-12 mx-auto rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-2xl shadow-lg shadow-blue-500/20 mb-2.5 border border-blue-400/30">
             🏠
           </div>
-          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center justify-center gap-2">
-            Housing Worlds <span className="text-blue-400 font-semibold text-base sm:text-lg">CRM</span>
+          <h1 className="text-xl font-black tracking-tight text-white flex items-center justify-center gap-1.5">
+            Housing Worlds <span className="text-blue-400 font-semibold text-base">CRM</span>
           </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Real Estate Sales & Telecalling Portal • Secure Access
+          <p className="text-xs text-slate-400 mt-0.5">
+            Real Estate Lead & Sales Portal • Secure Cloud Access
           </p>
         </div>
 
-        {/* Login Method Tabs (ID & Password by default, OTP as alternative) */}
+        {/* Primary Tabs: Login vs Register (नया ID & पासवर्ड बनाएं) */}
         <div className="grid grid-cols-2 p-1.5 bg-slate-950/90 border-b border-slate-800 gap-1">
           <button
-            id="tab-login-password"
+            id="tab-login"
             type="button"
             onClick={() => {
-              setAuthMode('password');
+              setActiveTab('login');
               setErrorMsg('');
+              setSuccessMsg('');
             }}
             className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              authMode === 'password'
+              activeTab === 'login'
                 ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
           >
             <KeyRound className="w-3.5 h-3.5" />
-            <span>ID और पासवर्ड (ID & Pass)</span>
+            <span>लॉगिन करें (Sign In)</span>
           </button>
 
           <button
-            id="tab-login-otp"
+            id="tab-register"
             type="button"
             onClick={() => {
-              setAuthMode('otp');
+              setActiveTab('register');
               setErrorMsg('');
+              setSuccessMsg('');
             }}
             className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-              authMode === 'otp'
-                ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+              activeTab === 'register'
+                ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-500/30'
                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
             }`}
           >
-            <Smartphone className="w-3.5 h-3.5" />
-            <span>मोबाइल OTP (OTP)</span>
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>नया ID बनाएं (Register)</span>
           </button>
         </div>
 
-        {/* Role Switcher Tabs */}
-        <div className="p-2 bg-slate-950/70 border-b border-slate-800 flex gap-1.5">
-          <button
-            id="role-btn-admin"
-            type="button"
-            onClick={() => {
-              setSelectedRole('admin');
-              setErrorMsg('');
-              if (authMode === 'password') {
-                setLoginId('admin');
-                setPassword('password123');
-              } else {
-                setMobileNumber('9876500000');
-                setUserName('Sunny Choudhary');
-              }
-            }}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-              selectedRole === 'admin'
-                ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20 font-bold'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-            }`}
-          >
-            <Crown className="w-4 h-4" />
-            <span>Admin Access</span>
-          </button>
-
-          <button
-            id="role-btn-user"
-            type="button"
-            onClick={() => {
-              setSelectedRole('user');
-              setErrorMsg('');
-              if (authMode === 'password') {
-                setLoginId('vishal');
-                setPassword('password123');
-              } else {
-                setMobileNumber('9871111111');
-                setUserName('Vishal');
-              }
-            }}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-              selectedRole === 'user'
-                ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20 font-bold'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
-            }`}
-          >
-            <User className="w-4 h-4" />
-            <span>User / Telecaller</span>
-          </button>
-        </div>
-
-        {/* Role Explanation Notice */}
-        <div className="px-6 pt-3 pb-1">
-          {selectedRole === 'admin' ? (
-            <div className="p-2.5 rounded-xl bg-amber-950/40 border border-amber-800/50 flex items-start gap-2.5 text-xs text-amber-200">
-              <Crown className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <div>
-                <strong className="block text-amber-300 font-semibold mb-0.5">
-                  👑 एडमिन (Admin) लॉगिन:
-                </strong>
-                सभी टीम मेंबर्स की लीड्स, डेटा इम्पोर्ट, कॉल ट्रैकिंग और पूर्ण सेटिंग्स का नियंत्रण।
-              </div>
-            </div>
-          ) : (
-            <div className="p-2.5 rounded-xl bg-blue-950/40 border border-blue-800/50 flex items-start gap-2.5 text-xs text-blue-200">
-              <Lock className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-              <div>
-                <strong className="block text-blue-300 font-semibold mb-0.5">
-                  🔒 प्राइवेट यूज़र (User) लॉगिन:
-                </strong>
-                आप सिर्फ अपनी व्यक्तिगत लीड्स और कॉल हिस्ट्री ही देख पाएंगे।
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Form Body */}
-        <div className="p-6 pt-3 space-y-4">
-          {/* Error Message */}
+        {/* Form Container */}
+        <div className="p-5 sm:p-6 space-y-4">
+          {/* Notifications */}
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-rose-950/70 border border-rose-800 text-rose-200 text-xs flex items-center gap-2 animate-in fade-in duration-200">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <div className="p-3 rounded-xl bg-rose-950/50 border border-rose-800 text-rose-300 text-xs flex items-start gap-2 animate-in fade-in duration-200">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
               <span>{errorMsg}</span>
             </div>
           )}
 
-          {authMode === 'password' ? (
-            /* ======================================================== */
-            /* MODE 1: ID & PASSWORD LOGIN (DEFAULT)                     */
-            /* ======================================================== */
-            <form onSubmit={handlePasswordLogin} className="space-y-4">
+          {successMsg && (
+            <div className="p-3 rounded-xl bg-emerald-950/50 border border-emerald-800 text-emerald-300 text-xs flex items-start gap-2 animate-in fade-in duration-200">
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-400" />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
+          {/* TAB 1: LOGIN (लॉगिन करें) */}
+          {activeTab === 'login' && (
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
-                  <span>यूज़र आईडी या मोबाइल नंबर (User ID / Mobile)</span>
-                  <span className="text-[11px] text-slate-500 font-normal">उदा. admin, vishal, 9876500000</span>
+                  <span>यूज़र ID / यूजरनेम / मोबाइल नंबर</span>
+                  <span className="text-[11px] text-slate-500">User ID</span>
                 </label>
-                <div className="relative flex items-center">
-                  <User className="w-4 h-4 text-slate-500 absolute left-3.5 pointer-events-none" />
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
-                    id="login-user-id"
+                    id="input-login-id"
                     type="text"
+                    required
                     value={loginId}
                     onChange={(e) => {
                       setLoginId(e.target.value);
                       setErrorMsg('');
-                      // auto detect role if matches default user
-                      const val = e.target.value.trim().toLowerCase();
-                      const matched = DEFAULT_USERS.find(
-                        (u) =>
-                          u.username?.toLowerCase() === val ||
-                          u.mobile === val ||
-                          u.name.toLowerCase() === val
-                      );
-                      if (matched) {
-                        setSelectedRole(matched.role);
-                      }
                     }}
-                    placeholder="यूज़र आईडी / यूजरनेम दर्ज करें..."
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder:text-slate-600 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium"
-                    autoFocus
+                    placeholder="उदा. admin या आपका यूजरनेम"
+                    className="w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                   />
                 </div>
               </div>
@@ -425,52 +388,52 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
                   <span>पासवर्ड (Password)</span>
-                  <span className="text-[11px] text-amber-400/80 font-mono">डिफ़ॉल्ट: password123</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="text-[11px] text-blue-400 hover:text-blue-300 flex items-center gap-1 cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                    <span>{showPassword ? 'Hide' : 'Show'}</span>
+                  </button>
                 </label>
-                <div className="relative flex items-center">
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 pointer-events-none" />
+                <div className="relative">
+                  <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
-                    id="login-password"
+                    id="input-login-password"
                     type={showPassword ? 'text' : 'password'}
+                    required
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);
                       setErrorMsg('');
                     }}
-                    placeholder="पासवर्ड दर्ज करें..."
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-10 pr-10 py-2.5 text-white placeholder:text-slate-600 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    placeholder="अपना पासवर्ड दर्ज करें"
+                    className="w-full pl-10 pr-10 py-2.5 bg-slate-950 border border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 text-slate-400 hover:text-slate-200 cursor-pointer"
-                    title={showPassword ? 'Hide Password' : 'Show Password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-slate-400 pt-0.5">
+              <div className="flex items-center justify-between pt-1">
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="rounded border-slate-700 bg-slate-950 text-blue-600 focus:ring-0 w-3.5 h-3.5 cursor-pointer"
+                    className="rounded border-slate-700 text-blue-600 focus:ring-0 w-4 h-4 bg-slate-950 cursor-pointer"
                   />
-                  <span>यूज़र आईडी याद रखें (Remember ID)</span>
+                  <span className="text-xs text-slate-400">Remember ID</span>
                 </label>
 
                 <button
                   type="button"
                   onClick={() => {
-                    setAuthMode('otp');
+                    setActiveTab('register');
                     setErrorMsg('');
                   }}
-                  className="text-blue-400 hover:underline hover:text-blue-300 cursor-pointer"
+                  className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer underline"
                 >
-                  OTP से लॉगिन करें?
+                  नया ID बनाएं →
                 </button>
               </div>
 
@@ -478,239 +441,233 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
                 id="btn-login-submit"
                 type="submit"
                 disabled={isLoggingIn}
-                className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer active:scale-98 disabled:opacity-50 ${
-                  selectedRole === 'admin'
-                    ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
-                    : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'
-                }`}
+                className="w-full py-3 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98 disabled:opacity-50"
               >
-                <span>{isLoggingIn ? 'सत्यापित हो रहा है...' : 'लॉगिन करें (Sign In)'}</span>
-                <ArrowRight className="w-4 h-4" />
+                {isLoggingIn ? (
+                  <span>सत्यापित हो रहा है...</span>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>लॉगिन करें (Sign In)</span>
+                  </>
+                )}
               </button>
             </form>
-          ) : (
-            /* ======================================================== */
-            /* MODE 2: MOBILE OTP LOGIN (SECONDARY OPTION)              */
-            /* ======================================================== */
-            <div className="space-y-4">
-              {/* Simulated SMS Alert Banner when OTP is sent */}
-              {step === 'otp' && isSimulatingSms && (
-                <div className="p-3.5 bg-emerald-950/80 border border-emerald-600 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <span className="flex items-center gap-1.5 text-xs font-bold text-emerald-300">
-                      <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>📲 SMS अलर्ट प्राप्त हुआ (Simulated SMS)</span>
-                    </span>
-                    <span className="text-[10px] text-emerald-400 bg-emerald-900/60 px-1.5 py-0.5 rounded">
-                      अभी-अभी
-                    </span>
-                  </div>
-                  <p className="text-xs text-emerald-100 font-mono">
-                    "Housing Worlds CRM लॉगिन हेतु आपका OTP है:{' '}
-                    <strong className="text-emerald-300 text-sm font-bold tracking-wider">
-                      {generatedOtp}
-                    </strong>
-                    "
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setOtp(generatedOtp)}
-                    className="mt-2 text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
-                  >
-                    <Sparkles className="w-3 h-3" />
-                    <span>Auto-fill ({generatedOtp})</span>
-                  </button>
-                </div>
-              )}
-
-              {step === 'mobile' ? (
-                /* STEP 1: MOBILE NUMBER INPUT */
-                <form onSubmit={handleSendOtp} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                      10-अंकों का मोबाइल नंबर (Mobile Number)
-                    </label>
-                    <div className="relative flex items-center">
-                      <span className="absolute left-3 text-slate-400 font-semibold text-sm select-none border-r border-slate-700 pr-2">
-                        +91
-                      </span>
-                      <input
-                        type="tel"
-                        inputMode="numeric"
-                        placeholder="98XXXXXXXX"
-                        value={mobileNumber}
-                        onChange={(e) => handleMobileChange(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-16 pr-4 py-2.5 text-white placeholder:text-slate-600 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 tracking-wider font-mono font-medium"
-                        autoFocus
-                      />
-                    </div>
-                  </div>
-
-                  {/* If User Role and custom number, ask for User Name */}
-                  {selectedRole === 'user' && (
-                    <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                        कार्यकारी का नाम (Sales Executive Name)
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="उदा. विशाल / राहुल / अमित शर्मा"
-                        value={userName}
-                        onChange={(e) => setUserName(e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white placeholder:text-slate-600 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                      />
-                    </div>
-                  )}
-
-                  <button
-                    type="submit"
-                    className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer active:scale-98 ${
-                      selectedRole === 'admin'
-                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
-                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'
-                    }`}
-                  >
-                    <span>OTP भेजें (Send OTP)</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </form>
-              ) : (
-                /* STEP 2: OTP INPUT */
-                <form onSubmit={handleVerifyOtp} className="space-y-4">
-                  <div className="flex items-center justify-between text-xs text-slate-400">
-                    <span>
-                      नंबर: <strong className="text-white font-mono">+91 {mobileNumber}</strong>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStep('mobile');
-                        setOtp('');
-                        setErrorMsg('');
-                      }}
-                      className="text-blue-400 hover:underline cursor-pointer"
-                    >
-                      नंबर बदलें
-                    </button>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                      4-अंकों का OTP दर्ज करें (Enter 4-Digit OTP)
-                    </label>
-                    <div className="relative flex items-center">
-                      <KeyRound className="w-4 h-4 text-slate-500 absolute left-3.5 pointer-events-none" />
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={6}
-                        placeholder="• • • •"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl pl-11 pr-4 py-2.5 text-white placeholder:text-slate-600 text-center text-lg tracking-[0.5em] font-mono font-bold focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        autoFocus
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">
-                      {resendTimer > 0 ? (
-                        `पुनः OTP भेजें (${resendTimer}s)`
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => handleSendOtp()}
-                          className="text-blue-400 hover:text-blue-300 font-semibold cursor-pointer"
-                        >
-                          OTP दोबारा भेजें (Resend OTP)
-                        </button>
-                      )}
-                    </span>
-                    <span className="text-slate-500 text-[11px]">सुरक्षित OTP प्रमाणीकरण</span>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className={`w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer active:scale-98 ${
-                      selectedRole === 'admin'
-                        ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
-                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/20'
-                    }`}
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>लॉगिन सत्यापित करें (Verify & Login)</span>
-                  </button>
-                </form>
-              )}
-            </div>
           )}
 
-          {/* Quick Demo One-Click Accounts */}
-          <div className="pt-3 border-t border-slate-800/80">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-amber-400" />
-                <span>Quick Demo Accounts (1-क्लिक टेस्ट करें)</span>
-              </span>
-              <span className="text-[10px] text-slate-500">क्लिक करके तुरंत लॉगिन करें</span>
-            </div>
+          {/* TAB 2: REGISTER (यूज़र खुद अपना ID और पासवर्ड जनरेट करें) */}
+          {activeTab === 'register' && (
+            <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+              <div className="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-800/40 text-emerald-300 text-xs flex items-start gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span>
+                  <strong>नया यूज़र रजिस्ट्रेशन:</strong> अपना नाम, मनपसंद ID और पासवर्ड सेट करें। यह तुरंत क्लाउड डेटाबेस में सुरक्षित सेव हो जाएगा।
+                </span>
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {DEFAULT_USERS.map((user) => {
-                const isAdmin = user.role === 'admin';
-                return (
-                  <button
-                    key={user.id}
-                    type="button"
-                    onClick={() => handleSelectQuickDemo(user)}
-                    className={`p-2.5 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer group hover:scale-[1.02] ${
-                      isAdmin
-                        ? 'bg-amber-950/30 border-amber-800/60 hover:border-amber-500'
-                        : 'bg-slate-800/50 border-slate-700/60 hover:border-blue-500'
-                    }`}
-                  >
-                    <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white shrink-0 ${
-                        isAdmin ? 'bg-amber-500 text-slate-950' : 'bg-slate-700 text-white'
-                      }`}
+              {/* Full Name */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  पूरा नाम (Full Name) *
+                </label>
+                <div className="relative">
+                  <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    id="reg-input-name"
+                    type="text"
+                    required
+                    value={regName}
+                    onChange={(e) => setRegName(e.target.value)}
+                    placeholder="उदा. अमित शर्मा (Amit Sharma)"
+                    className="w-full pl-10 pr-3 py-2 bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white text-xs sm:text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Mobile Number */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  मोबाइल नंबर (Mobile No.) *
+                </label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    id="reg-input-mobile"
+                    type="tel"
+                    required
+                    maxLength={10}
+                    value={regMobile}
+                    onChange={(e) => setRegMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="10-अंकों का मोबाइल नंबर"
+                    className="w-full pl-10 pr-3 py-2 bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white text-xs sm:text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Custom User ID & Password Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Username / ID */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    यूज़र ID चुनें (Username) *
+                  </label>
+                  <div className="relative">
+                    <KeyRound className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      id="reg-input-username"
+                      type="text"
+                      required
+                      value={regUsername}
+                      onChange={(e) => setRegUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                      placeholder="उदा. amit, amit12"
+                      className="w-full pl-8 pr-2.5 py-2 bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white text-xs sm:text-sm outline-none transition-all placeholder:text-slate-600 font-mono font-medium"
+                    />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-slate-300">
+                      पासवर्ड बनाएं *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowRegPassword(!showRegPassword)}
+                      className="text-[10px] text-emerald-400 hover:text-emerald-300 cursor-pointer"
                     >
-                      {isAdmin ? <Crown className="w-4 h-4" /> : user.name.slice(0, 2)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold text-white truncate group-hover:text-blue-300">
-                          {user.name}
-                        </span>
-                        {isAdmin && (
-                          <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1 py-0.2 rounded font-bold">
-                            Admin
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
-                        <span>ID: {user.username}</span>
-                        <span>•</span>
-                        <span>Pass: 123</span>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+                      {showRegPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <Lock className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      id="reg-input-password"
+                      type={showRegPassword ? 'text' : 'password'}
+                      required
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      placeholder="कम से कम 4 अक्षर"
+                      className="w-full pl-8 pr-2.5 py-2 bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white text-xs sm:text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Designation & Role */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    पद / पोस्ट (Designation)
+                  </label>
+                  <div className="relative">
+                    <Briefcase className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      id="reg-input-designation"
+                      type="text"
+                      value={regDesignation}
+                      onChange={(e) => setRegDesignation(e.target.value)}
+                      placeholder="उदा. Sales Executive"
+                      className="w-full pl-8 pr-2.5 py-2 bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white text-xs sm:text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    खाता रोल (Role)
+                  </label>
+                  <select
+                    id="reg-input-role"
+                    value={regRole}
+                    onChange={(e) => setRegRole(e.target.value as UserRole)}
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white text-xs sm:text-sm outline-none transition-all cursor-pointer font-medium"
+                  >
+                    <option value="user">👤 Sales User (सेल्स टीम)</option>
+                    <option value="admin">👑 Company Admin (एडमिन)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  id="btn-register-submit"
+                  type="submit"
+                  disabled={isRegistering}
+                  className="w-full py-3 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98 disabled:opacity-50"
+                >
+                  {isRegistering ? (
+                    <span>आईडी जनरेट हो रही है...</span>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 text-emerald-200" />
+                      <span>आईडी और पासवर्ड बनाएं (Generate Account)</span>
+                      <ArrowRight className="w-4 h-4 ml-1" />
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <p className="text-center text-[11px] text-slate-500 pt-1">
+                पहले से खाता है?{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('login');
+                    setErrorMsg('');
+                  }}
+                  className="text-blue-400 hover:underline font-semibold cursor-pointer"
+                >
+                  यहां लॉगिन करें
+                </button>
+              </p>
+            </form>
+          )}
+
+          {/* Quick Admin Helper Box (No fake team members) */}
+          <div className="pt-2 border-t border-slate-800/80">
+            <div className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-xs flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold text-xs">
+                  <Crown className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="font-bold text-slate-200 text-[11px]">
+                    Master Admin (डिफ़ॉल्ट एडमिन):
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-mono">
+                    ID: <span className="text-amber-300">admin</span> • Pass:{' '}
+                    <span className="text-amber-300">password123</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab('login');
+                  setLoginId('admin');
+                  setPassword('password123');
+                  setErrorMsg('');
+                }}
+                className="px-2.5 py-1 text-[11px] font-semibold text-amber-300 bg-amber-950/50 border border-amber-800/60 rounded-lg hover:bg-amber-900/60 transition-colors cursor-pointer"
+              >
+                Auto-Fill
+              </button>
             </div>
           </div>
         </div>
 
         {/* Footer Security Badges */}
-        <div className="bg-slate-950 p-3.5 border-t border-slate-800 flex items-center justify-around text-[11px] text-slate-400">
+        <div className="bg-slate-950 p-3 border-t border-slate-800 flex items-center justify-around text-[11px] text-slate-400">
           <span className="flex items-center gap-1">
             <Shield className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Role-Based Access</span>
+            <span>Firebase Cloud Persisted</span>
           </span>
           <span className="text-slate-700">•</span>
           <span className="flex items-center gap-1">
             <Lock className="w-3.5 h-3.5 text-blue-400" />
-            <span>User Data Isolated</span>
+            <span>Private User Sessions</span>
           </span>
           <span className="text-slate-700">•</span>
           <span className="flex items-center gap-1">

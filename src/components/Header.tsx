@@ -24,6 +24,7 @@ interface HeaderProps {
   onAddNewLead: () => void;
   onOpenWhatsAppTemplates: () => void;
   onResetDemoData: () => void;
+  onClearAllData?: () => void;
   onOpenLogCallModal?: () => void;
   isCloudConnected?: boolean;
 }
@@ -35,6 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
   onAddNewLead,
   onOpenWhatsAppTemplates,
   onResetDemoData,
+  onClearAllData,
   onOpenLogCallModal,
   isCloudConnected = true,
 }) => {
@@ -135,17 +137,17 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="hidden sm:inline">Export CSV</span>
           </button>
 
-          {isAdmin && (
+          {isAdmin && onResetDemoData && (
             <button
               id="header-btn-reset-demo"
               type="button"
               onClick={() => {
-                if (window.confirm('Reset leads to sample real estate data? Your current edits will be replaced.')) {
+                if (window.confirm('Load sample real estate demo leads for testing?')) {
                   onResetDemoData();
                 }
               }}
               className="p-1.5 sm:px-2.5 sm:py-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-              title="Reset to default demo data (Admin only)"
+              title="Load sample demo data (Admin only)"
             >
               <RefreshCw className="w-3.5 h-3.5" />
             </button>

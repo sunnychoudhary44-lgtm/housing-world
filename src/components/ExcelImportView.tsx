@@ -26,7 +26,6 @@ import { Lead, LeadPriority, LeadSource, LeadStatus, AuthUser } from '../types';
 import {
   STATUSES,
   SOURCES,
-  TEAM_MEMBERS,
   COMMON_PROJECTS,
   COMMON_SIZES,
 } from '../data/initialData';
@@ -34,6 +33,7 @@ import {
 interface ExcelImportViewProps {
   existingLeads: Lead[];
   currentUser?: AuthUser | null;
+  teamMembers?: string[];
   onImportCompleted: (importedLeads: Lead[]) => void;
   onCancel: () => void;
 }
@@ -61,6 +61,7 @@ interface ParsedRow {
 export const ExcelImportView: React.FC<ExcelImportViewProps> = ({
   existingLeads,
   currentUser,
+  teamMembers = [],
   onImportCompleted,
   onCancel,
 }) => {
@@ -409,7 +410,7 @@ export const ExcelImportView: React.FC<ExcelImportViewProps> = ({
       // Salesperson
       let mappedSalesperson = isUserRole && currentUser?.name ? currentUser.name : defaultSalesperson;
       if (!isUserRole && rawSalesperson) {
-        const matchTm = TEAM_MEMBERS.find((tm) => tm.toLowerCase() === rawSalesperson.toLowerCase());
+        const matchTm = teamMembers.find((tm) => tm.toLowerCase() === rawSalesperson.toLowerCase());
         if (matchTm) mappedSalesperson = matchTm;
         else if (rawSalesperson.trim()) mappedSalesperson = rawSalesperson.trim();
       }
@@ -1159,7 +1160,7 @@ export const ExcelImportView: React.FC<ExcelImportViewProps> = ({
                     className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:ring-1 focus:ring-blue-500 focus:bg-white font-medium"
                   >
                     <option value="">Unassigned</option>
-                    {TEAM_MEMBERS.map((tm) => (
+                    {teamMembers.map((tm) => (
                       <option key={tm} value={tm}>
                         {tm}
                       </option>

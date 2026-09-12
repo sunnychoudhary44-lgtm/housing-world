@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Lead, LeadPriority, LeadSource, LeadStatus, AuthUser } from '../types';
+import { Lead, LeadPriority, LeadSource, LeadStatus, AuthUser, Project, Developer, Broker } from '../types';
 import {
   STATUSES,
   SOURCES,
-  TEAM_MEMBERS,
   COMMON_PROJECTS,
   COMMON_SIZES,
 } from '../data/initialData';
@@ -18,14 +17,23 @@ import {
   FileSpreadsheet,
   UserPlus,
   UploadCloud,
+  IndianRupee,
+  Building2,
+  Layers,
+  Users2,
 } from 'lucide-react';
 import { ExcelImportView } from './ExcelImportView';
+import { formatINR } from '../utils/formatters';
 
 interface LeadFormViewProps {
   editLeadData?: Lead | null;
   currentUser?: AuthUser | null;
   existingLeads?: Lead[];
+  teamMembers?: string[];
   initialMode?: 'manual' | 'excel';
+  projects?: Project[];
+  developers?: Developer[];
+  brokers?: Broker[];
   onSaveLead: (lead: Omit<Lead, 'id'> & { id?: number }) => void;
   onBulkImportLeads?: (leads: Lead[]) => void;
   onCancel: () => void;
@@ -35,7 +43,11 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
   editLeadData,
   currentUser,
   existingLeads = [],
+  teamMembers = [],
   initialMode = 'manual',
+  projects = [],
+  developers = [],
+  brokers = [],
   onSaveLead,
   onBulkImportLeads,
   onCancel,
@@ -56,7 +68,11 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [project, setProject] = useState('');
+  const [projectId, setProjectId] = useState('');
+  const [developerName, setDeveloperName] = useState('');
   const [source, setSource] = useState<LeadSource>('Facebook');
+  const [brokerName, setBrokerName] = useState('');
+  const [brokerId, setBrokerId] = useState('');
   const [budget, setBudget] = useState('');
   const [size, setSize] = useState('');
   const [status, setStatus] = useState<LeadStatus>('New');
@@ -66,6 +82,8 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
   const [followup, setFollowup] = useState('');
   const [priority, setPriority] = useState<LeadPriority>('Normal');
   const [remarks, setRemarks] = useState('');
+  const [paymentReceived, setPaymentReceived] = useState<string>('');
+  const [totalDealValue, setTotalDealValue] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState('');
 
   // Populate form if editing
@@ -74,7 +92,11 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
       setName(editLeadData.name || '');
       setMobile(editLeadData.mobile || '');
       setProject(editLeadData.project || '');
+      setProjectId(editLeadData.projectId || '');
+      setDeveloperName(editLeadData.developerName || '');
       setSource(editLeadData.source || 'Facebook');
+      setBrokerName(editLeadData.brokerName || '');
+      setBrokerId(editLeadData.brokerId || '');
       setBudget(editLeadData.budget || '');
       setSize(editLeadData.size || '');
       setStatus(editLeadData.status || 'New');
@@ -84,6 +106,12 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
       setFollowup(editLeadData.followup ? editLeadData.followup.slice(0, 16) : '');
       setPriority(editLeadData.priority || 'Normal');
       setRemarks(editLeadData.remarks || '');
+      setPaymentReceived(
+        editLeadData.paymentReceived !== undefined ? String(editLeadData.paymentReceived) : ''
+      );
+      setTotalDealValue(
+        editLeadData.totalDealValue !== undefined ? String(editLeadData.totalDealValue) : ''
+      );
     } else {
       resetForm();
     }
@@ -93,7 +121,11 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
     setName('');
     setMobile('');
     setProject('');
+    setProjectId('');
+    setDeveloperName('');
     setSource('Facebook');
+    setBrokerName('');
+    setBrokerId('');
     setBudget('');
     setSize('');
     setStatus('New');
@@ -101,6 +133,8 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
     setFollowup('');
     setPriority('Normal');
     setRemarks('');
+    setPaymentReceived('');
+    setTotalDealValue('');
     setErrorMessage('');
   };
 
@@ -121,12 +155,19 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
       return;
     }
 
+    const parsedPayment = paymentReceived.trim() !== '' ? Number(paymentReceived.replace(/,/g, '')) : undefined;
+    const parsedDealValue = totalDealValue.trim() !== '' ? Number(totalDealValue.replace(/,/g, '')) : undefined;
+
     onSaveLead({
       id: editLeadData?.id,
       name: cleanName,
       mobile: cleanPhone.slice(-10),
       project: project.trim(),
+      projectId: projectId || undefined,
+      developerName: developerName || undefined,
       source,
+      brokerName: brokerName.trim() || undefined,
+      brokerId: brokerId || undefined,
       budget: budget.trim(),
       size: size.trim(),
       status,
@@ -134,6 +175,8 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
       followup,
       priority,
       remarks: remarks.trim(),
+      paymentReceived: !isNaN(parsedPayment as number) ? parsedPayment : undefined,
+      totalDealValue: !isNaN(parsedDealValue as number) ? parsedDealValue : undefined,
     });
   };
 
@@ -143,6 +186,7 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
       <ExcelImportView
         existingLeads={existingLeads}
         currentUser={currentUser}
+        teamMembers={teamMembers}
         onImportCompleted={(imported) => {
           if (onBulkImportLeads) {
             onBulkImportLeads(imported);
@@ -301,19 +345,45 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
             {/* Project */}
             <div className="field">
               <label htmlFor="project" className="block text-xs font-semibold text-slate-700 mb-1">
-                Project Name
+                Real-Estate Project Name
               </label>
-              <input
-                id="project"
-                type="text"
-                value={project}
-                onChange={(e) => setProject(e.target.value)}
-                placeholder="Nekpur / Gounchi / Govardhan..."
-                className="w-full px-3.5 py-2 text-xs sm:text-sm bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg outline-none transition-all"
-              />
-              {/* Quick suggestions chips */}
+              <div className="relative">
+                <input
+                  id="project"
+                  type="text"
+                  value={project}
+                  onChange={(e) => {
+                    setProject(e.target.value);
+                    const matchedProj = projects.find(
+                      (p) => p.name.toLowerCase() === e.target.value.toLowerCase()
+                    );
+                    if (matchedProj) {
+                      setProjectId(matchedProj.id);
+                      setDeveloperName(matchedProj.developerName);
+                    }
+                  }}
+                  placeholder="e.g. DLF The Arbour, Godrej Aristocrat..."
+                  className="w-full px-3.5 py-2 text-xs sm:text-sm bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg outline-none transition-all"
+                />
+              </div>
+
+              {/* Quick suggestions chips from registered real estate projects & common */}
               <div className="flex flex-wrap gap-1.5 mt-1.5">
-                {COMMON_PROJECTS.slice(0, 4).map((cp) => (
+                {projects.slice(0, 4).map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => {
+                      setProject(p.name);
+                      setProjectId(p.id);
+                      setDeveloperName(p.developerName);
+                    }}
+                    className="text-[10px] px-2 py-0.5 rounded bg-sky-50 hover:bg-sky-100 text-sky-700 font-medium transition-colors border border-sky-200/60"
+                  >
+                    🏢 {p.name}
+                  </button>
+                ))}
+                {COMMON_PROJECTS.slice(0, 3).map((cp) => (
                   <button
                     key={cp}
                     type="button"
@@ -343,6 +413,32 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
                   </option>
                 ))}
               </select>
+
+              {/* Channel Partner / Broker attribution if source is Channel Partner */}
+              {(source === 'Channel Partner (CP)' || brokers.length > 0) && (
+                <div className="mt-2 p-2.5 bg-emerald-50/70 border border-emerald-200 rounded-lg">
+                  <label className="block text-[11px] font-semibold text-emerald-900 mb-1 flex items-center gap-1">
+                    <Users2 className="w-3.5 h-3.5 text-emerald-700" />
+                    <span>Channel Partner / Broker Attribution:</span>
+                  </label>
+                  <select
+                    value={brokerName}
+                    onChange={(e) => {
+                      setBrokerName(e.target.value);
+                      const b = brokers.find((br) => br.firmName === e.target.value);
+                      if (b) setBrokerId(b.id);
+                    }}
+                    className="w-full px-2.5 py-1.5 text-xs bg-white border border-emerald-300 rounded text-slate-800 focus:ring-1 focus:ring-emerald-500"
+                  >
+                    <option value="">-- No Sourcing Broker (Direct Lead) --</option>
+                    {brokers.map((b) => (
+                      <option key={b.id} value={b.firmName}>
+                        {b.firmName} ({b.tier} CP - {b.agreedCommissionPercent}%)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
             {/* Budget */}
@@ -433,11 +529,13 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
                   className="w-full px-3.5 py-2 text-xs sm:text-sm bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg outline-none transition-all cursor-pointer font-medium"
                 >
                   <option value="">Unassigned</option>
-                  {TEAM_MEMBERS.map((tm) => (
-                    <option key={tm} value={tm}>
-                      {tm}
-                    </option>
-                  ))}
+                  {Array.from(new Set([...teamMembers, ...(salesperson ? [salesperson] : [])]))
+                    .filter(Boolean)
+                    .map((tm) => (
+                      <option key={tm} value={tm}>
+                        {tm}
+                      </option>
+                    ))}
                 </select>
               )}
             </div>
@@ -471,6 +569,75 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
                 <option value="Hot">🔥 Hot (Immediate Intent)</option>
                 <option value="High">⚡ High (Active Buyer)</option>
               </select>
+            </div>
+
+            {/* Payment & Token Tracking (Directly impacts Salesperson Payment Target) */}
+            <div className="sm:col-span-2 p-3.5 bg-emerald-50/70 rounded-xl border border-emerald-200/90">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                  <IndianRupee className="w-4 h-4 text-emerald-600" />
+                  <span>पेमेंट व टोकन कलेक्शन (Payment Target Tracker)</span>
+                </label>
+                <span className="text-[11px] text-emerald-700 font-medium">
+                  {status === 'Booking' || status === 'Closed' ? '🌟 Direct Target Contribution' : 'Optional Advance/Token'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="paymentReceived" className="block text-[11px] font-semibold text-slate-700 mb-1">
+                    Payment Received / Advance Token (₹ प्राप्त राशि)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-xs text-slate-400 font-bold">₹</span>
+                    <input
+                      id="paymentReceived"
+                      type="number"
+                      min="0"
+                      step="1000"
+                      value={paymentReceived}
+                      onChange={(e) => setPaymentReceived(e.target.value)}
+                      placeholder="e.g. 51000"
+                      className="w-full pl-7 pr-3 py-2 text-xs sm:text-sm bg-white border border-emerald-300 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 rounded-lg outline-none font-semibold text-emerald-950"
+                    />
+                  </div>
+                  {/* Quick Preset Buttons */}
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {[21000, 51000, 100000, 200000, 500000].map((amt) => (
+                      <button
+                        key={amt}
+                        type="button"
+                        onClick={() => setPaymentReceived(String(amt))}
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-white hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-medium transition-colors cursor-pointer"
+                      >
+                        +{formatINR(amt, true)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="totalDealValue" className="block text-[11px] font-semibold text-slate-700 mb-1">
+                    Total Deal Value (₹ कुल सौदा मूल्य)
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-2.5 text-xs text-slate-400 font-bold">₹</span>
+                    <input
+                      id="totalDealValue"
+                      type="number"
+                      min="0"
+                      step="10000"
+                      value={totalDealValue}
+                      onChange={(e) => setTotalDealValue(e.target.value)}
+                      placeholder="e.g. 1500000"
+                      className="w-full pl-7 pr-3 py-2 text-xs sm:text-sm bg-white border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg outline-none font-semibold text-slate-900"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    {totalDealValue ? `Formatted: ${formatINR(Number(totalDealValue))}` : 'Overall plot deal amount'}
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Remarks (Full width) */}

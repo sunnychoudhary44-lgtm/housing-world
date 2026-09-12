@@ -46,6 +46,68 @@ export function parseGaj(sizeStr?: string): number {
   return match ? parseInt(match[0], 10) : 0;
 }
 
+export function parseAmount(str?: string | number): number {
+  if (typeof str === 'number') return isNaN(str) ? 0 : str;
+  if (!str) return 0;
+  const clean = str.toString().replace(/,/g, '').trim().toLowerCase();
+  const crMatch = clean.match(/([\d.]+)\s*(cr|crore)/);
+  if (crMatch) return parseFloat(crMatch[1]) * 10000000;
+  const lakhMatch = clean.match(/([\d.]+)\s*(lakh|lac|l)/);
+  if (lakhMatch) return parseFloat(lakhMatch[1]) * 100000;
+  const numMatch = clean.match(/\d+/);
+  return numMatch ? parseInt(numMatch[0], 10) : 0;
+}
+
+export function formatINR(amount: number, compact = false): string {
+  if (isNaN(amount) || amount === 0) return '₹0';
+  if (compact) {
+    if (amount >= 10000000) {
+      const cr = amount / 10000000;
+      return `₹${cr.toFixed(cr % 1 === 0 ? 0 : 2)} Cr`;
+    }
+    if (amount >= 100000) {
+      const l = amount / 100000;
+      return `₹${l.toFixed(l % 1 === 0 ? 0 : 1)} Lakh`;
+    }
+    if (amount >= 1000) {
+      return `₹${(amount / 1000).toFixed(0)}k`;
+    }
+  }
+  if (amount >= 10000000) {
+    const cr = amount / 10000000;
+    return `₹${cr.toFixed(2).replace(/\.00$/, '')} Cr`;
+  }
+  if (amount >= 100000) {
+    const l = amount / 100000;
+    return `₹${l.toFixed(2).replace(/\.00$/, '')} Lakh`;
+  }
+  return '₹' + Math.round(amount).toLocaleString('en-IN');
+}
+
+export function getLeadPaymentReceived(lead: Lead): number {
+  if (typeof lead.paymentReceived === 'number' && !isNaN(lead.paymentReceived)) {
+    return lead.paymentReceived;
+  }
+  // Check if remarks mention token or payment
+  if (lead.remarks) {
+    const tokenMatch = lead.remarks.match(/₹?\s*([\d,]+)\s*(?:received|token|advance|paid)/i);
+    if (tokenMatch) {
+      const parsed = parseInt(tokenMatch[1].replace(/,/g, ''), 10);
+      if (!isNaN(parsed) && parsed > 0) return parsed;
+    }
+  }
+  // If status is Closed, default to budget / total deal value
+  if (lead.status === 'Closed') {
+    return lead.totalDealValue || parseAmount(lead.budget) || 1500000;
+  }
+  // If status is Booking, default token payment
+  if (lead.status === 'Booking') {
+    const budgetVal = parseAmount(lead.budget);
+    return budgetVal > 0 ? Math.min(Math.round(budgetVal * 0.1), 100000) : 51000;
+  }
+  return 0;
+}
+
 export type FollowupTiming = 'overdue' | 'today' | 'upcoming' | 'none';
 
 export function getFollowupTiming(followupStr?: string, status?: string): FollowupTiming {

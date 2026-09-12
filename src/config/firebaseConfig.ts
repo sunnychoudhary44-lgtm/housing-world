@@ -1,0 +1,16 @@
+// Firebase Client Configuration
+// Safe for client-side bundling in Vite / Netlify
+export const firebaseConfig = {
+  projectId: "gen-lang-client-0399357576",
+  appId: "1:958026468772:web:cdd23c7730fdda73900531",
+  apiKey: "AIzaSyCBLY_TiJEnc3Z5lIvn4k37aU7pu6csMCM",
+  authDomain: "gen-lang-client-0399357576.firebaseapp.com",
+  firestoreDatabaseId: "ai-studio-housingworldslea-8ab9fb40-c4c4-4411-a651-8376403819dd",
+  storageBucket: "gen-lang-client-0399357576.firebasestorage.app",
+  messagingSenderId: "958026468772",
+  measurementId: "",
+  oAuthClientId: "958026468772-2udpfdhbf00d3d03uc21o9mtl6ng3caa.apps.googleusercontent.com",
+  recaptchaSiteKey: ""
+};
+
+export default firebaseConfig;
