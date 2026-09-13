@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { Lead, AuthUser } from '../types';
 import { exportLeadsToCSV } from '../utils/formatters';
+import { LanguageSelector } from './LanguageSelector';
+import { useLanguage } from '../context/LanguageContext';
 
 interface HeaderProps {
   leads: Lead[];
@@ -41,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
   isCloudConnected = true,
 }) => {
   const isAdmin = currentUser?.role === 'admin';
+  const { t } = useLanguage();
 
   return (
     <header className="bg-slate-900 text-white border-b border-slate-800 px-4 sm:px-6 py-3.5 sticky top-0 z-30 shadow-md">
@@ -53,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
           <div>
             <div className="flex items-center flex-wrap gap-2">
               <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white">
-                Housing Worlds <span className="text-blue-400 font-medium text-sm sm:text-base">— Lead CRM</span>
+                {t('appName', 'Housing Worlds')} <span className="text-blue-400 font-medium text-sm sm:text-base">— {t('appSubtitle', 'Lead CRM')}</span>
               </h1>
 
               {/* Role Badge */}
@@ -66,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
                   }`}
                 >
                   {isAdmin ? <Crown className="w-3 h-3 text-amber-400" /> : <User className="w-3 h-3 text-blue-400" />}
-                  <span>{isAdmin ? 'Admin (All Access)' : `User: ${currentUser.name}`}</span>
+                  <span>{isAdmin ? t('roleAdmin', 'Admin (All Access)') : `${t('roleUser', 'User')}: ${currentUser.name}`}</span>
                 </span>
               )}
 
@@ -74,11 +77,11 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 px-2 py-0.5 rounded-full">
                   <Cloud className="w-3 h-3 text-emerald-400" />
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Cloud Active</span>
+                  <span>{t('cloudActive', 'Cloud Active')}</span>
                 </span>
               ) : (
                 <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium bg-amber-950/80 text-amber-300 border border-amber-700/60 px-2 py-0.5 rounded-full">
-                  <Database className="w-3 h-3 text-amber-400" /> Offline Buffer
+                  <Database className="w-3 h-3 text-amber-400" /> {t('offlineBuffer', 'Offline Buffer')}
                 </span>
               )}
             </div>
@@ -88,7 +91,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span>Google Firebase Firestore</span>
               <span className="text-slate-600">•</span>
               <span className="text-slate-300 font-semibold">
-                {isAdmin ? `${leads.length} Total Leads (All Users)` : `${leads.length} My Assigned Leads`}
+                {isAdmin ? `${leads.length} ${t('allLeadsTotal', 'Total Leads (All Users)')}` : `${leads.length} ${t('myLeadsTotal', 'My Assigned Leads')}`}
               </span>
               {currentUser && (
                 <>
@@ -100,8 +103,11 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* Header Action Buttons & User Profile */}
+        {/* Header Action Buttons, User Profile & Language Selector */}
         <div className="flex items-center flex-wrap gap-2">
+          {/* Prominent Language Switcher */}
+          <LanguageSelector variant="header" />
+
           {currentUser && onLogout && (
             <button
               id="header-btn-logout"
@@ -111,7 +117,7 @@ export const Header: React.FC<HeaderProps> = ({
               title={`Switch account or logout from ${currentUser.name}`}
             >
               <LogOut className="w-3.5 h-3.5 text-slate-400" />
-              <span className="hidden sm:inline">Logout / Switch</span>
+              <span className="hidden sm:inline">{t('logout', 'Logout / Switch')}</span>
             </button>
           )}
 
@@ -120,10 +126,10 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             onClick={onOpenWhatsAppTemplates}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-900/60 hover:bg-emerald-800/80 text-emerald-200 border border-emerald-700/60 rounded-lg transition-colors cursor-pointer"
-            title="WhatsApp Message Templates (Hindi & English)"
+            title="WhatsApp Message Templates"
           >
             <MessageSquare className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden sm:inline">WA Templates</span>
+            <span className="hidden sm:inline">{t('waTemplates', 'WA Templates')}</span>
           </button>
 
           <button
@@ -134,7 +140,7 @@ export const Header: React.FC<HeaderProps> = ({
             title="Download leads as CSV spreadsheet"
           >
             <Download className="w-3.5 h-3.5 text-slate-400" />
-            <span className="hidden sm:inline">Export CSV</span>
+            <span className="hidden sm:inline">{t('exportCsv', 'Export CSV')}</span>
           </button>
 
           {isAdmin && onResetDemoData && (
@@ -162,7 +168,7 @@ export const Header: React.FC<HeaderProps> = ({
               title="Log a phone call record"
             >
               <PhoneCall className="w-3.5 h-3.5" />
-              <span>Log Call</span>
+              <span>{t('logCall', 'Log Call')}</span>
             </button>
           )}
 
@@ -173,7 +179,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded-lg shadow-sm transition-all cursor-pointer hover:shadow-blue-500/20 active:scale-95"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Lead</span>
+            <span>{t('addLead', 'Add Lead')}</span>
           </button>
         </div>
       </div>

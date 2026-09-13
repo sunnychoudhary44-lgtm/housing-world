@@ -381,6 +381,8 @@ export interface CallLog {
   updatedLeadStatus?: LeadStatus;
 }
 
+export type Language = 'en' | 'hi' | 'hinglish';
+
 export interface WhatsAppTemplate {
   id: string;
   title: string;

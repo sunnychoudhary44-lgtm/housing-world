@@ -38,6 +38,7 @@ import {
 import { getGajTargets, getPaymentTargets } from '../utils/targets';
 import { TeamMemberDetailModal } from './TeamMemberDetailModal';
 import { DailyActivityTracker } from './DailyActivityTracker';
+import { useLanguage } from '../context/LanguageContext';
 
 interface DashboardViewProps {
   leads: Lead[];
@@ -66,6 +67,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenLogModal,
   onSelectTeamMemberForLeads,
 }) => {
+  const { t } = useLanguage();
   const isAdmin = currentUser?.role === 'admin';
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [memberSearchTerm, setMemberSearchTerm] = useState('');
@@ -274,7 +276,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const statCards = [
     {
       id: 'stat-total-leads',
-      label: selectedMember ? `${selectedMember}'s Leads` : 'Total Leads',
+      label: selectedMember ? `${selectedMember}'s Leads` : t('totalLeads', 'Total Leads'),
       value: total,
       sub: selectedMember ? `Inquiries assigned to ${selectedMember}` : 'All recorded inquiries',
       icon: <Users className="w-5 h-5 text-blue-600" />,
@@ -290,7 +292,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     {
       id: 'stat-today-followups',
-      label: selectedMember ? `${selectedMember}'s Follow-ups` : 'Today Follow-ups',
+      label: selectedMember ? `${selectedMember}'s Follow-ups` : t('todayFollowups', 'Today Follow-ups'),
       value: todayFollowups,
       sub: selectedMember ? `Scheduled today for ${selectedMember}` : 'Scheduled for today',
       icon: <Calendar className="w-5 h-5 text-indigo-600" />,
@@ -300,7 +302,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     {
       id: 'stat-overdue',
-      label: 'Overdue',
+      label: t('overdue', 'Overdue'),
       value: overdue,
       sub: overdue > 0 ? (selectedMember ? `${overdue} overdue for ${selectedMember}` : 'Requires immediate action') : 'All caught up!',
       icon: <AlertOctagon className="w-5 h-5 text-rose-600" />,
@@ -310,7 +312,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     {
       id: 'stat-hot-leads',
-      label: selectedMember ? `${selectedMember}'s Hot Leads` : 'Hot Leads',
+      label: selectedMember ? `${selectedMember}'s Hot Leads` : t('hotLeads', 'Hot Leads'),
       value: hot,
       sub: selectedMember ? `High purchase intent for ${selectedMember}` : 'High purchase intent',
       icon: <Flame className="w-5 h-5 text-amber-600" />,
@@ -326,7 +328,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     {
       id: 'stat-site-visits',
-      label: selectedMember ? `${selectedMember}'s Site Visits` : 'Site Visits',
+      label: selectedMember ? `${selectedMember}'s Site Visits` : t('siteVisits', 'Site Visits'),
       value: todayVisitsCount > 0 ? `${todayVisitsCount} Today` : siteVisits,
       sub:
         todayVisitsCount > 0
@@ -339,7 +341,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     {
       id: 'stat-bookings',
-      label: 'Bookings/Closed',
+      label: t('bookingsClosed', 'Bookings/Closed'),
       value: `${bookingsClosed} (${bookedGajTotal} Gaj)`,
       sub: selectedMember
         ? `${bookedGajTotal} of ${selectedMemberStats?.targetGaj || 50} Gaj booked`
@@ -351,7 +353,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     {
       id: 'stat-payment-target',
-      label: selectedMember ? `${selectedMember}'s Collection` : 'Payment & Collection',
+      label: selectedMember ? `${selectedMember}'s Collection` : t('paymentCollection', 'Payment & Collection'),
       value:
         todayTokensCollected > 0
           ? `${formatINR(todayTokensCollected, true)} Today`
@@ -367,7 +369,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     {
       id: 'stat-calls-target',
-      label: selectedMember ? `${selectedMember}'s Calls` : 'Call Tracker (50/day)',
+      label: selectedMember ? `${selectedMember}'s Calls` : t('callTracker50', 'Call Tracker (50/day)'),
       value: todayCallsCount > 0 ? `${todayCallsCount} Calls Today` : '50 / day',
       sub: selectedMember
         ? `${activeCalls.length} total calls recorded by ${selectedMember}`
@@ -387,11 +389,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-2 border-b border-slate-200">
         <div>
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <span>Sales & Operations Dashboard</span>
+            <span>{t('salesDashboard', 'Sales & Operations Dashboard')}</span>
             {isAdmin && (
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
                 <Crown className="w-3.5 h-3.5 text-amber-600" />
-                <span>Admin View</span>
+                <span>{t('adminView', 'Admin View')}</span>
               </span>
             )}
           </h2>
@@ -410,7 +412,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               className="px-3 py-1.5 text-xs sm:text-sm font-semibold text-sky-700 hover:text-sky-800 bg-sky-50 hover:bg-sky-100/80 border border-sky-200 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
             >
               <PhoneCall className="w-3.5 h-3.5" />
-              <span>Log Call</span>
+              <span>{t('logCall', 'Log Call')}</span>
             </button>
           )}
           <button
@@ -418,7 +420,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             onClick={() => onNavigate('add')}
             className="px-3 py-1.5 text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100/80 border border-blue-200 rounded-lg transition-colors cursor-pointer"
           >
-            + New Lead Entry
+            {t('newLeadEntry', '+ New Lead Entry')}
           </button>
           <button
             type="button"
@@ -431,7 +433,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             }}
             className="px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 hover:text-slate-900 bg-white border border-slate-200 rounded-lg transition-colors shadow-xs cursor-pointer flex items-center gap-1"
           >
-            <span>{selectedMember ? `View ${selectedMember}'s Leads` : 'View All Leads'}</span>
+            <span>{selectedMember ? `View ${selectedMember}'s Leads` : t('viewAllLeads', 'View All Leads')}</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
           </button>
         </div>

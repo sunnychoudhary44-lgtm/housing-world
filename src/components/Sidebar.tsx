@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import { ActivePage, Lead, CallLog, AuthUser, Developer, Project, Broker } from '../types';
 import { getFollowupTiming } from '../utils/formatters';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageSelector } from './LanguageSelector';
 
 interface SidebarProps {
   activePage: ActivePage;
@@ -45,6 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   tokensAgreementsCount = 0,
 }) => {
   const isAdmin = currentUser?.role === 'admin';
+  const { t } = useLanguage();
 
   // Compute counts
   const totalLeads = leads.length;
@@ -67,31 +70,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }> = [
     {
       id: 'dashboard',
-      label: isAdmin ? 'Dashboard' : 'My Dashboard',
+      label: isAdmin ? t('navDashboard', 'Dashboard') : t('navMyDashboard', 'My Dashboard'),
       icon: <LayoutDashboard className="w-4 h-4 shrink-0" />,
     },
     {
       id: 'leads',
-      label: isAdmin ? 'All Leads' : 'My Leads',
+      label: isAdmin ? t('navAllLeads', 'All Leads') : t('navMyLeads', 'My Leads'),
       icon: <Users className="w-4 h-4 shrink-0" />,
       badge: totalLeads,
       badgeColor: 'bg-slate-700 text-slate-200',
     },
     {
       id: 'add',
-      label: 'Add Lead',
+      label: t('navAddLead', 'Add Lead'),
       icon: <UserPlus className="w-4 h-4 shrink-0" />,
     },
     {
       id: 'calls',
-      label: isAdmin ? 'Call Tracker' : 'My Calls',
+      label: isAdmin ? t('navCallTracker', 'Call Tracker') : t('navMyCalls', 'My Calls'),
       icon: <PhoneCall className="w-4 h-4 shrink-0" />,
       badge: todayCallsCount > 0 ? todayCallsCount : undefined,
       badgeColor: 'bg-sky-500/20 text-sky-300 border border-sky-500/40 font-bold',
     },
     {
       id: 'followups',
-      label: isAdmin ? 'Follow-ups' : 'My Follow-ups',
+      label: isAdmin ? t('navFollowups', 'Follow-ups') : t('navMyFollowups', 'My Follow-ups'),
       icon: <CalendarClock className="w-4 h-4 shrink-0" />,
       badge: overdueCount > 0 ? overdueCount : undefined,
       badgeColor: 'bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold',
@@ -107,28 +110,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }> = [
     {
       id: 'tokens_agreements',
-      label: 'Tokens & Agreements',
+      label: t('navTokensAgreements', 'Tokens & Agreements'),
       icon: <FileCheck2 className="w-4 h-4 shrink-0 text-emerald-400" />,
       badge: tokensAgreementsCount > 0 ? tokensAgreementsCount : undefined,
       badgeColor: 'bg-emerald-950 text-emerald-300 border border-emerald-700/50',
     },
     {
       id: 'site_visits',
-      label: 'Site Visits & Passes',
+      label: t('navSiteVisits', 'Site Visits & Passes'),
       icon: <CalendarCheck2 className="w-4 h-4 shrink-0 text-amber-400" />,
       badge: siteVisitsCount > 0 ? siteVisitsCount : undefined,
       badgeColor: 'bg-amber-950 text-amber-300 border border-amber-700/50',
     },
     {
       id: 'cost_sheets',
-      label: 'Cost Sheets & Quotes',
+      label: t('navCostSheets', 'Cost Sheets & Quotes'),
       icon: <Calculator className="w-4 h-4 shrink-0 text-purple-400" />,
       badge: costSheetsCount > 0 ? costSheetsCount : undefined,
       badgeColor: 'bg-purple-950 text-purple-300 border border-purple-700/50',
     },
     {
       id: 'brokers',
-      label: 'Brokers & CPs',
+      label: t('navBrokersCPs', 'Brokers & CPs'),
       icon: <Users2 className="w-4 h-4 shrink-0 text-sky-400" />,
       badge: brokersCount > 0 ? brokersCount : undefined,
       badgeColor: 'bg-sky-950 text-sky-300 border border-sky-700/50',
@@ -142,12 +145,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }> = [
     {
       id: 'team',
-      label: isAdmin ? 'Team & Targets' : 'My Quota & Target',
+      label: isAdmin ? t('navTeamTargets', 'Team & Targets') : t('navMyQuota', 'My Quota & Target'),
       icon: <Briefcase className="w-4 h-4 shrink-0" />,
     },
     {
       id: 'reports',
-      label: isAdmin ? 'Reports (All)' : 'My Reports',
+      label: t('navReports', 'Reports & Analytics'),
       icon: <BarChart3 className="w-4 h-4 shrink-0" />,
     },
   ];
@@ -194,7 +197,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Sell.Do Real Estate Suite */}
         <div className="pt-2 border-t border-slate-800 w-full space-y-1">
           <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Sell.Do Real Estate
+            {t('navRealEstateSuite', 'Sell.Do Real Estate')}
           </div>
           {sellDoNavItems.map((item) => {
             const isActive = activePage === item.id;
@@ -255,41 +258,47 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </nav>
 
-      {/* Quick Summary Box at sidebar bottom on larger screens */}
-      <div className="hidden lg:block mt-auto p-4 m-3 rounded-xl bg-slate-800/50 border border-slate-700/60">
-        <div className="text-xs font-semibold text-slate-200 mb-2 flex items-center justify-between">
-          <span>Priority Pulse</span>
-          {hotCount > 0 && (
-            <span className="flex items-center gap-1 text-[11px] text-rose-400 font-bold bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-800/60">
-              <Flame className="w-3 h-3 text-rose-400" /> {hotCount} Hot
-            </span>
-          )}
-        </div>
+      {/* Language Selector + Quick Summary Box in Sidebar Footer */}
+      <div className="mt-auto p-3 space-y-3">
+        {/* Quick Language Selector in Sidebar */}
+        <LanguageSelector variant="sidebar" />
 
-        {overdueCount > 0 ? (
-          <div className="text-[11px] text-amber-300 bg-amber-950/40 border border-amber-800/40 rounded-lg p-2 flex items-start gap-1.5">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
-            <span>
-              <strong>{overdueCount} follow-up(s)</strong> overdue! Check{' '}
-              <button
-                type="button"
-                onClick={() => onSelectPage('followups')}
-                className="underline hover:text-amber-200 cursor-pointer"
-              >
-                Follow-ups
-              </button>
-              .
-            </span>
+        {/* Priority Pulse on larger screens */}
+        <div className="hidden lg:block p-3.5 rounded-xl bg-slate-800/50 border border-slate-700/60">
+          <div className="text-xs font-semibold text-slate-200 mb-2 flex items-center justify-between">
+            <span>{t('navPriorityPulse', 'Priority Pulse')}</span>
+            {hotCount > 0 && (
+              <span className="flex items-center gap-1 text-[11px] text-rose-400 font-bold bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-800/60">
+                <Flame className="w-3 h-3 text-rose-400" /> {hotCount} {t('hotLeads', 'Hot')}
+              </span>
+            )}
           </div>
-        ) : (
-          <p className="text-[11px] text-slate-400">
-            Sabhi follow-ups up-to-date hain. Real estate inventory & CP network live synced.
-          </p>
-        )}
 
-        <div className="mt-3 pt-2.5 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
-          <span>Sell.Do Engine</span>
-          <span className="text-indigo-400 font-medium">Real-Estate Ready</span>
+          {overdueCount > 0 ? (
+            <div className="text-[11px] text-amber-300 bg-amber-950/40 border border-amber-800/40 rounded-lg p-2 flex items-start gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+              <span>
+                <strong>{overdueCount} {t('navOverdueFollowups', 'follow-up(s) overdue!')}</strong>{' '}
+                <button
+                  type="button"
+                  onClick={() => onSelectPage('followups')}
+                  className="underline hover:text-amber-200 cursor-pointer font-bold"
+                >
+                  {t('navFollowups', 'Follow-ups')}
+                </button>
+                .
+              </span>
+            </div>
+          ) : (
+            <p className="text-[11px] text-slate-400">
+              {t('navAllUpToDate', 'Sabhi follow-ups up-to-date hain. Real estate inventory & CP network live synced.')}
+            </p>
+          )}
+
+          <div className="mt-3 pt-2.5 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
+            <span>{t('navSellDoEngine', 'Sell.Do Engine')}</span>
+            <span className="text-indigo-400 font-medium">{t('navReady', 'Ready')}</span>
+          </div>
         </div>
       </div>
     </aside>

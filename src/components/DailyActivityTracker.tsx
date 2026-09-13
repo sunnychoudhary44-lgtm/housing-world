@@ -30,6 +30,7 @@ import {
   makePhoneCall,
   getLeadPaymentReceived,
 } from '../utils/formatters';
+import { useLanguage } from '../context/LanguageContext';
 
 interface DailyActivityTrackerProps {
   siteVisits?: SiteVisit[];
@@ -77,6 +78,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
   onNavigate,
   onViewLeadDetail,
 }) => {
+  const { t } = useLanguage();
   const todayYMD = useMemo(() => getLocalYMD(), []);
   const yesterdayYMD = useMemo(() => {
     const d = new Date();
@@ -247,17 +249,17 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                 <CalendarCheck2 className="w-5 h-5" />
               </span>
               <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                प्रतिदिन विज़िट एवं पेमेंट ट्रैकर (Daily Visits & Collections)
+                {t('dailyActivityTitle', 'प्रतिदिन विज़िट एवं पेमेंट ट्रैकर (Daily Visits & Collections)')}
               </h3>
               {selectedMember && (
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 flex items-center gap-1">
                   <User className="w-3 h-3" />
-                  <span>फ़िल्टर: {selectedMember}</span>
+                  <span>{t('filterExecutive', 'फ़िल्टर')}: {selectedMember}</span>
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-300 mt-1 max-w-2xl">
-              चयनित दिन की सभी ऑन-ग्राउंड साइट विज़िट्स और प्राप्त टोकन / सेल एग्रीमेंट भुगतानों का सीधा लेखा-जोखा।
+              {t('dailyActivitySubtitle', 'चयनित दिन की सभी ऑन-ग्राउंड साइट विज़िट्स और प्राप्त टोकन / सेल एग्रीमेंट भुगतानों का सीधा लेखा-जोखा।')}
             </p>
           </div>
 
@@ -273,7 +275,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                   : 'text-slate-300 hover:text-white hover:bg-white/10'
               }`}
             >
-              आज (Today)
+              {t('today', 'आज (Today)')}
             </button>
             <button
               type="button"
@@ -284,7 +286,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                   : 'text-slate-300 hover:text-white hover:bg-white/10'
               }`}
             >
-              कल (Yesterday)
+              {t('yesterday', 'कल (Yesterday)')}
             </button>
 
             {/* Stepper buttons */}
@@ -444,7 +446,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             }`}
           >
             <MapPin className="w-4 h-4 text-emerald-600" />
-            <span>दैनिक साइट विज़िट्स (Site Visits)</span>
+            <span>{t('dailyVisitsTab', 'दैनिक साइट विज़िट्स (Site Visits)')}</span>
             <span
               className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                 totalVisitsCount > 0
@@ -466,7 +468,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             }`}
           >
             <IndianRupee className="w-4 h-4 text-amber-600" />
-            <span>दैनिक पेमेंट्स व टोकन (Payments)</span>
+            <span>{t('dailyPaymentsTab', 'दैनिक पेमेंट्स व टोकन (Payments)')}</span>
             <span
               className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                 totalDayPaymentCollected > 0
@@ -488,7 +490,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             }`}
           >
             <TrendingUp className="w-4 h-4 text-indigo-600" />
-            <span>7-दिन का दैनिक सारांश (7-Day Matrix)</span>
+            <span>{t('daily7DayMatrixTab', '7-दिन का दैनिक सारांश (7-Day Matrix)')}</span>
           </button>
         </div>
 
