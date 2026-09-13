@@ -359,7 +359,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Top Header Banner - Sell.Do Real Estate Style */}
+      {/* Top Header Banner - Housing World Real Estate Style */}
       <div className="bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 rounded-2xl p-5 sm:p-6 text-white border border-slate-800 shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -367,7 +367,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
           <div>
             <div className="flex items-center gap-2 text-sky-400 text-xs font-semibold uppercase tracking-wider mb-1">
               <Layers className="w-4 h-4" />
-              <span>Sell.Do Project & Inventory Hub • प्रोजेक्ट्स एवं यूनिट्स</span>
+              <span>Housing World Project & Inventory Hub • प्रोजेक्ट्स एवं यूनिट्स</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               Real-Estate Projects & Inventory
@@ -668,7 +668,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
       )}
 
       {/* ========================================================= */}
-      {/* INVENTORY UNIT MATRIX DRAWER / MODAL - Sell.Do Signature */}
+      {/* INVENTORY UNIT MATRIX DRAWER / MODAL - Housing World Signature */}
       {/* ========================================================= */}
       {activeProjectForInventory && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
@@ -953,7 +953,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
       )}
 
       {/* ========================================================= */}
-      {/* COST SHEET GENERATOR MODAL - Sell.Do Signature */}
+      {/* COST SHEET GENERATOR MODAL - Housing World Signature */}
       {/* ========================================================= */}
       {costSheetUnit && costSheetProject && costBreakdown && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
@@ -962,7 +962,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
               <div className="flex items-center gap-2.5">
                 <FileSpreadsheet className="w-5 h-5 text-sky-400" />
                 <div>
-                  <h3 className="font-bold text-base">Sell.Do Cost Sheet Breakdown</h3>
+                  <h3 className="font-bold text-base">Housing World Cost Sheet Breakdown</h3>
                   <p className="text-xs text-slate-400">
                     {costSheetProject.name} • Unit: {costSheetUnit.unitNumber}
                   </p>

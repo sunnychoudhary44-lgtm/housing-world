@@ -230,7 +230,7 @@ _Offer valid for 7 days subject to unit availability._`;
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-semibold mb-3 border border-indigo-400/30">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Sell.Do Pricing Engine • Cost Sheet & Quotations</span>
+              <span>Housing World Pricing Engine • Cost Sheet & Quotations</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
               Real Estate Cost Sheets & Quotations
@@ -399,7 +399,7 @@ _Offer valid for 7 days subject to unit availability._`;
                 <Calculator className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Sell.Do Property Cost Sheet Calculator</h3>
+                <h3 className="text-lg font-bold text-slate-900">Housing World Property Cost Sheet Calculator</h3>
                 <p className="text-xs text-slate-500">
                   प्रोजेक्ट, यूनिट साइज़ और चार्ज कॉन्फ़िगर करें — ऑटोमैटिक ब्रेकडाउन और क्वोटेशन
                 </p>
@@ -701,7 +701,7 @@ _Offer valid for 7 days subject to unit availability._`;
             <div className="border-b border-slate-200 pb-4 flex items-start justify-between">
               <div>
                 <span className="text-[10px] tracking-wider uppercase font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200">
-                  Housing Worlds • Sell.Do Quotation
+                  Housing World Quotation
                 </span>
                 <h3 className="text-xl font-black text-slate-900 mt-2">{selectedSheetForView.projectName}</h3>
                 <p className="text-xs text-slate-500">{selectedSheetForView.developerName || 'Developer'}</p>

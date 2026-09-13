@@ -172,7 +172,7 @@ export default function App() {
   // Dynamic registered team users loaded from Firestore
   const [users, setUsers] = useState<AuthUser[]>([]);
 
-  // Real Estate Suite State (Sell.Do)
+  // Real Estate Suite State (Housing World)
   const [developers, setDevelopers] = useState<Developer[]>(() => {
     try {
       const s = localStorage.getItem('hwcrm_developers');
@@ -1470,7 +1470,7 @@ export default function App() {
             />
           )}
 
-          {/* Sell.Do Real Estate Suite: Developers & Mandates */}
+          {/* Housing World Real Estate Suite: Developers & Mandates */}
           {activePage === 'developers' && (
             <DevelopersView
               developers={developers}
@@ -1485,7 +1485,7 @@ export default function App() {
             />
           )}
 
-          {/* Sell.Do Real Estate Suite: Projects & Inventory */}
+          {/* Housing World Real Estate Suite: Projects & Inventory */}
           {activePage === 'projects' && (
             <ProjectsView
               projects={projects}
@@ -1501,7 +1501,7 @@ export default function App() {
             />
           )}
 
-          {/* Sell.Do Real Estate Suite: Brokers & Channel Partners */}
+          {/* Housing World Real Estate Suite: Brokers & Channel Partners */}
           {activePage === 'brokers' && (
             <BrokersView
               brokers={brokers}
@@ -1512,7 +1512,7 @@ export default function App() {
             />
           )}
 
-          {/* Sell.Do Real Estate Suite: Site Visits Hub */}
+          {/* Housing World Real Estate Suite: Site Visits Hub */}
           {activePage === 'site_visits' && (
             <SiteVisitsView
               siteVisits={siteVisits}
@@ -1526,7 +1526,7 @@ export default function App() {
             />
           )}
 
-          {/* Sell.Do Real Estate Suite: Cost Sheets & Quotations */}
+          {/* Housing World Real Estate Suite: Cost Sheets & Quotations */}
           {activePage === 'cost_sheets' && (
             <CostSheetView
               costSheets={costSheets}

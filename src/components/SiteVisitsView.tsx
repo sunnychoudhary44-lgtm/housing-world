@@ -239,7 +239,7 @@ ${visit.pickupRequired ? `🚗 *Pickup Details:* ${visit.cabAssigned || 'Cab Pro
 कृपया साइट गेट पर यह पास कोड दिखाएं। हमारी टीम आपका स्वागत करने के लिए तैयार रहेगी!
 
 धन्यवाद,
-*Housing Worlds / Sell.Do Sales Desk*`;
+*Housing World Sales Desk*`;
 
     const cleanMobile = visit.leadMobile.replace(/\D/g, '');
     const mobileWithCountry = cleanMobile.startsWith('91') && cleanMobile.length === 12 ? cleanMobile : `91${cleanMobile}`;
@@ -255,7 +255,7 @@ ${visit.pickupRequired ? `🚗 *Pickup Details:* ${visit.cabAssigned || 'Cab Pro
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-semibold mb-3 border border-blue-400/30">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Sell.Do Real Estate Workflow • Site Visits Hub</span>
+              <span>Housing World Real Estate Workflow • Site Visits Hub</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
               Site Visits & Digital Entry Passes
@@ -275,7 +275,7 @@ ${visit.pickupRequired ? `🚗 *Pickup Details:* ${visit.cabAssigned || 'Cab Pro
           </button>
         </div>
 
-        {/* Sell.Do Metrics Counters */}
+        {/* Housing World Metrics Counters */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mt-6 pt-6 border-t border-slate-800/80">
           <div className="bg-slate-800/60 rounded-xl p-3 border border-slate-700/50">
             <p className="text-xs text-slate-400 font-medium">Total Site Visits</p>
@@ -589,7 +589,7 @@ ${visit.pickupRequired ? `🚗 *Pickup Details:* ${visit.cabAssigned || 'Cab Pro
                   {editingVisit ? 'Edit Site Visit' : 'Schedule Project Site Visit'}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Sell.Do Lead Pipeline • क्लाइंट के लिए साइट विज़िट बुक करें
+                  Housing World Lead Pipeline • क्लाइंट के लिए साइट विज़िट बुक करें
                 </p>
               </div>
             </div>

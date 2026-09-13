@@ -129,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
   ];
 
-  const sellDoNavItems: Array<{
+  const housingWorldNavItems: Array<{
     id: ActivePage;
     label: string;
     icon: React.ReactNode;
@@ -249,7 +249,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
             {t('navRealEstateSuite', 'Real Estate Suite')}
           </div>
-          {sellDoNavItems.map((item) => {
+          {housingWorldNavItems.map((item) => {
             const isActive = activePage === item.id;
             return (
               <button
@@ -339,7 +339,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
 
           <div className="mt-3 pt-2.5 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
-            <span>{t('navSellDoEngine', 'Sell.Do Engine')}</span>
+            <span>{t('navHousingWorldEngine', 'Housing World Engine')}</span>
             <span className="text-indigo-400 font-medium">{t('navReady', 'Ready')}</span>
           </div>
         </div>

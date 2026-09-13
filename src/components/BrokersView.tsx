@@ -230,7 +230,7 @@ export const BrokersView: React.FC<BrokersViewProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Top Header Banner - Sell.Do Real Estate Style */}
+      {/* Top Header Banner - Housing World Real Estate Style */}
       <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 rounded-2xl p-5 sm:p-6 text-white border border-slate-800 shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -238,7 +238,7 @@ export const BrokersView: React.FC<BrokersViewProps> = ({
           <div>
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-1">
               <Users2 className="w-4 h-4" />
-              <span>Sell.Do Channel Partner Network • ब्रोकर्स एवं डिस्ट्रीब्यूटर्स</span>
+              <span>Housing World Channel Partner Network • ब्रोकर्स एवं डिस्ट्रीब्यूटर्स</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               Brokers & Channel Partners

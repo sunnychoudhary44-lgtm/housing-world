@@ -96,7 +96,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     navPriorityPulse: 'Priority Pulse',
     navOverdueFollowups: 'follow-up(s) overdue! Check',
     navAllUpToDate: 'All follow-ups up-to-date. Real estate inventory & CP network live synced.',
-    navSellDoEngine: 'Sell.Do Real-Estate Engine',
+    navHousingWorldEngine: 'Housing World Real-Estate Engine',
     navReady: 'Ready',
 
     // Dashboard & Stats
@@ -209,7 +209,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     navFollowups: 'फॉलो-अप्स (Follow-ups)',
     navMyFollowups: 'मेरे फॉलो-अप्स',
     navMeetings: 'मीटिंग्स एवं डेली ट्रैकर (Meetings)',
-    navRealEstateSuite: 'रियल एस्टेट सुइट (Sell.Do)',
+    navRealEstateSuite: 'रियल एस्टेट सुइट (Housing World)',
     navTokensAgreements: 'टोकन व बयाना रसीद (Tokens)',
     navSiteVisits: 'साइट विज़िट्स व गेट पास (Visits)',
     navCostSheets: 'कॉस्ट शीट व कोट्स (Cost Sheets)',
@@ -222,7 +222,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     navPriorityPulse: 'प्राथमिकता अलर्ट (Priority Pulse)',
     navOverdueFollowups: 'फॉलो-अप की समय सीमा समाप्त! तुरंत देखें',
     navAllUpToDate: 'सभी फॉलो-अप्स समय पर हैं। रियल एस्टेट डेटा और सीपी नेटवर्क लाइव सिंक है।',
-    navSellDoEngine: 'Sell.Do रियल एस्टेट इंजन',
+    navHousingWorldEngine: 'Housing World रियल एस्टेट इंजन',
     navReady: 'तैयार',
 
     // Dashboard & Stats
@@ -348,7 +348,7 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     navPriorityPulse: 'Priority Pulse',
     navOverdueFollowups: 'follow-up(s) late ho gaye! Turant check karein:',
     navAllUpToDate: 'Sabhi follow-ups up-to-date hain. Real estate inventory & CP network live synced.',
-    navSellDoEngine: 'Sell.Do Real-Estate Suite',
+    navHousingWorldEngine: 'Housing World Real-Estate Suite',
     navReady: 'Ready',
 
     // Dashboard & Stats

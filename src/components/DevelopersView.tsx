@@ -163,7 +163,7 @@ export const DevelopersView: React.FC<DevelopersViewProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Top Header Banner - Sell.Do Real Estate Style */}
+      {/* Top Header Banner - Housing World Real Estate Style */}
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-5 sm:p-6 text-white border border-slate-800 shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -171,7 +171,7 @@ export const DevelopersView: React.FC<DevelopersViewProps> = ({
           <div>
             <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-1">
               <Building2 className="w-4 h-4" />
-              <span>Sell.Do Developer CRM • बिल्डर्स एवं प्रमोटर्स</span>
+              <span>Housing World Developer CRM • बिल्डर्स एवं प्रमोटर्स</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               Real-Estate Developers
