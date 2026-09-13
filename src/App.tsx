@@ -14,6 +14,8 @@ import {
   SiteVisit,
   CostSheet,
   TokenAgreement,
+  Deal,
+  CrmTask,
 } from './types';
 import {
   INITIAL_LEADS,
@@ -30,6 +32,8 @@ import {
   INITIAL_SITE_VISITS,
   INITIAL_COST_SHEETS,
   INITIAL_TOKENS_AGREEMENTS,
+  INITIAL_DEALS,
+  INITIAL_TASKS,
 } from './data/realEstateData';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -44,6 +48,9 @@ import { BrokersView } from './components/BrokersView';
 import { SiteVisitsView } from './components/SiteVisitsView';
 import { CostSheetView } from './components/CostSheetView';
 import { TokensAgreementsView } from './components/TokensAgreementsView';
+import { SalesPipelineView } from './components/SalesPipelineView';
+import { TasksView } from './components/TasksView';
+import { CommunicationHubView } from './components/CommunicationHubView';
 import { WhatsAppTemplatesModal } from './components/WhatsAppTemplatesModal';
 import { LeadDetailModal } from './components/LeadDetailModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
@@ -81,7 +88,14 @@ import {
   subscribeToTokensAgreements,
   saveTokenAgreementToCloud,
   deleteTokenAgreementFromCloud,
+  subscribeToDeals,
+  saveDealToCloud,
+  deleteDealFromCloud,
+  subscribeToTasks,
+  saveTaskToCloud,
+  deleteTaskFromCloud,
   seedRealEstateIfEmpty,
+  seedDealsAndTasksIfEmpty,
 } from './services/crmFirestore';
 import { CheckCircle2, Info, Crown, Lock, User, ShieldCheck } from 'lucide-react';
 
@@ -225,6 +239,30 @@ export default function App() {
       }
     } catch (e) {}
     return INITIAL_TOKENS_AGREEMENTS;
+  });
+
+  // CRM 5 Pillars: Deals (Sales Pipeline & Deal Management)
+  const [deals, setDeals] = useState<Deal[]>(() => {
+    try {
+      const s = localStorage.getItem('hwcrm_deals');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_DEALS;
+  });
+
+  // CRM 5 Pillars: Tasks (Task Management)
+  const [tasks, setTasks] = useState<CrmTask[]>(() => {
+    try {
+      const s = localStorage.getItem('hwcrm_tasks');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_TASKS;
   });
 
   const [developerFilterForProjects, setDeveloperFilterForProjects] = useState<string>('');
@@ -381,6 +419,32 @@ export default function App() {
       (err) => console.warn('Tokens & Agreements subscription note:', err)
     );
 
+    // Real-time synchronization for Deals (CRM Pillar 1)
+    const unsubscribeDeals = subscribeToDeals(
+      (cloudDeals) => {
+        if (cloudDeals && cloudDeals.length > 0) {
+          setDeals(cloudDeals);
+          try {
+            localStorage.setItem('hwcrm_deals', JSON.stringify(cloudDeals));
+          } catch (e) {}
+        }
+      },
+      (err) => console.warn('Deals subscription note:', err)
+    );
+
+    // Real-time synchronization for Tasks (CRM Pillar 4)
+    const unsubscribeTasks = subscribeToTasks(
+      (cloudTasks) => {
+        if (cloudTasks && cloudTasks.length > 0) {
+          setTasks(cloudTasks);
+          try {
+            localStorage.setItem('hwcrm_tasks', JSON.stringify(cloudTasks));
+          } catch (e) {}
+        }
+      },
+      (err) => console.warn('Tasks subscription note:', err)
+    );
+
     // Initialize initial seed data if collections are newly initialized
     seedRealEstateIfEmpty(
       INITIAL_DEVELOPERS,
@@ -391,6 +455,8 @@ export default function App() {
       INITIAL_COST_SHEETS,
       INITIAL_TOKENS_AGREEMENTS
     );
+
+    seedDealsAndTasksIfEmpty(INITIAL_DEALS, INITIAL_TASKS);
 
     return () => {
       unsubscribeLeads();
@@ -403,6 +469,8 @@ export default function App() {
       unsubscribeSiteVisits();
       unsubscribeCostSheets();
       unsubscribeTokensAgreements();
+      unsubscribeDeals();
+      unsubscribeTasks();
     };
   }, []);
 
@@ -518,6 +586,28 @@ export default function App() {
       );
     });
   }, [siteVisits, currentUser]);
+
+  // CRM 5 Pillars: Deals isolation (Admin: all deals; User: their assigned deals or unassigned)
+  const visibleDeals = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'admin') return deals;
+    const userNameLower = (currentUser.name || '').trim().toLowerCase();
+    return deals.filter((d) => {
+      if (!d.assignedTo) return true;
+      return d.assignedTo.trim().toLowerCase() === userNameLower;
+    });
+  }, [deals, currentUser]);
+
+  // CRM 5 Pillars: Tasks isolation (Admin: all tasks; User: their assigned tasks or unassigned)
+  const visibleTasks = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'admin') return tasks;
+    const userNameLower = (currentUser.name || '').trim().toLowerCase();
+    return tasks.filter((t) => {
+      if (!t.assignedTo) return true;
+      return t.assignedTo.trim().toLowerCase() === userNameLower;
+    });
+  }, [tasks, currentUser]);
 
   // Lead Save handler (Add or Update)
   const handleSaveLead = (leadData: Omit<Lead, 'id'> & { id?: number }) => {
@@ -959,6 +1049,94 @@ export default function App() {
     showToast('टोकन / एग्रीमेंट रिकॉर्ड हटा दिया गया।');
   };
 
+  // CRM 5 Pillars: Deals handlers
+  const handleSaveDeal = (deal: Deal) => {
+    setDeals((prev) => {
+      const idx = prev.findIndex((d) => d.id === deal.id);
+      let next: Deal[];
+      if (idx >= 0) {
+        next = [...prev];
+        next[idx] = deal;
+      } else {
+        next = [deal, ...prev];
+      }
+      try {
+        localStorage.setItem('hwcrm_deals', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+    saveDealToCloud(deal).catch(console.error);
+    showToast(`Deal "${deal.title}" updated successfully!`);
+  };
+
+  const handleDeleteDeal = (dealId: string) => {
+    setDeals((prev) => {
+      const next = prev.filter((d) => d.id !== dealId);
+      try {
+        localStorage.setItem('hwcrm_deals', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+    deleteDealFromCloud(dealId).catch(console.error);
+    showToast('Deal record deleted.');
+  };
+
+  // CRM 5 Pillars: Tasks handlers
+  const handleSaveTask = (task: CrmTask) => {
+    setTasks((prev) => {
+      const idx = prev.findIndex((t) => t.id === task.id);
+      let next: CrmTask[];
+      if (idx >= 0) {
+        next = [...prev];
+        next[idx] = task;
+      } else {
+        next = [task, ...prev];
+      }
+      try {
+        localStorage.setItem('hwcrm_tasks', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+    saveTaskToCloud(task).catch(console.error);
+    showToast(`Task "${task.title}" saved!`);
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setTasks((prev) => {
+      const next = prev.filter((t) => t.id !== taskId);
+      try {
+        localStorage.setItem('hwcrm_tasks', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+    deleteTaskFromCloud(taskId).catch(console.error);
+    showToast('Task removed.');
+  };
+
+  const handleToggleTaskComplete = (taskId: string) => {
+    setTasks((prev) => {
+      const next = prev.map((t) => {
+        if (t.id === taskId) {
+          const isDone = t.status === 'Completed';
+          const updated: CrmTask = {
+            ...t,
+            status: isDone ? 'Pending' : 'Completed',
+            completedAt: isDone ? undefined : new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          saveTaskToCloud(updated).catch(console.error);
+          return updated;
+        }
+        return t;
+      });
+      try {
+        localStorage.setItem('hwcrm_tasks', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+    showToast('Task status updated.');
+  };
+
   // Start editing a lead
   const handleStartEdit = (id: number) => {
     setEditingLeadId(id);
@@ -1064,6 +1242,8 @@ export default function App() {
           }}
           leads={visibleLeads}
           calls={visibleCalls}
+          dealsCount={visibleDeals.length}
+          tasksCount={visibleTasks.filter((t) => t.status !== 'Completed').length}
           currentUser={currentUser}
           brokersCount={brokers.length}
           siteVisitsCount={siteVisits.length}
@@ -1079,6 +1259,8 @@ export default function App() {
               calls={visibleCalls}
               siteVisits={visibleSiteVisits}
               tokensAgreements={visibleTokensAgreements}
+              deals={visibleDeals}
+              tasks={visibleTasks}
               currentUser={currentUser}
               users={users}
               onNavigate={(page) => {
@@ -1219,6 +1401,55 @@ export default function App() {
             />
           )}
 
+          {/* CRM Pillar 1: Sales Pipeline & Deals */}
+          {activePage === 'pipeline' && (
+            <SalesPipelineView
+              deals={visibleDeals}
+              leads={visibleLeads}
+              projects={projects}
+              currentUser={currentUser}
+              isAdmin={isAdmin}
+              onSaveDeal={handleSaveDeal}
+              onDeleteDeal={handleDeleteDeal}
+              onNavigate={(page) => setActivePage(page)}
+              onOpenLogModal={handleOpenLogCallModal}
+              onViewLeadDetail={(lead) => setDetailLead(lead)}
+            />
+          )}
+
+          {/* CRM Pillar 3: Communication & Activity Center */}
+          {activePage === 'communication' && (
+            <CommunicationHubView
+              calls={visibleCalls}
+              leads={visibleLeads}
+              siteVisits={visibleSiteVisits}
+              tokensAgreements={visibleTokensAgreements}
+              tasks={visibleTasks}
+              currentUser={currentUser}
+              isAdmin={isAdmin}
+              onOpenLogModal={handleOpenLogCallModal}
+              onDeleteCall={handleDeleteCall}
+              onViewLeadDetail={(lead) => setDetailLead(lead)}
+              onNavigate={(page) => setActivePage(page)}
+            />
+          )}
+
+          {/* CRM Pillar 4: Task Management */}
+          {activePage === 'tasks' && (
+            <TasksView
+              tasks={visibleTasks}
+              leads={visibleLeads}
+              currentUser={currentUser}
+              isAdmin={isAdmin}
+              onSaveTask={handleSaveTask}
+              onDeleteTask={handleDeleteTask}
+              onToggleTaskComplete={handleToggleTaskComplete}
+              onOpenLogModal={handleOpenLogCallModal}
+              onViewLeadDetail={(lead) => setDetailLead(lead)}
+            />
+          )}
+
+          {/* CRM Pillar 5: User & Team Management */}
           {activePage === 'team' && <TeamView leads={leads} currentUser={currentUser} users={users} />}
 
           {activePage === 'reports' && <ReportsView leads={visibleLeads} />}

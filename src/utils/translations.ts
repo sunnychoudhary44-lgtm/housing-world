@@ -54,6 +54,24 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     selectLanguage: 'Language',
     changeLanguage: 'Select Language',
 
+    // CRM 5 Pillars
+    pillar1Pipeline: '1. Sales Pipeline & Deals',
+    pillar2Leads: '2. Lead Management',
+    pillar3Communication: '3. Communication & Activity',
+    pillar4Tasks: '4. Task Management',
+    pillar5Team: '5. User & Team Management',
+    navPipeline: 'Pipeline & Deals',
+    navCommunicationHub: 'Communication Hub',
+    navTasks: 'Tasks & Operations',
+    pipelineTitle: 'Sales Pipeline & Deal Management',
+    pipelineSubtitle: 'Track deals across stages, probability, and advance tokens.',
+    taskManagementTitle: 'Task Management',
+    taskManagementSubtitle: 'Coordinate daily action items, site visits, and token collections.',
+    commHubTitle: 'Communication & Activity Center',
+    commHubSubtitle: 'Unified call logs, WhatsApp templates, and team activity timeline.',
+    createDeal: '+ Create New Deal',
+    addTask: '+ Add New Task',
+
     // Sidebar Navigation
     navDashboard: 'Dashboard',
     navMyDashboard: 'My Dashboard',
@@ -159,6 +177,24 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     selectLanguage: 'भाषा (Language)',
     changeLanguage: 'भाषा चुनें (Select Language)',
 
+    // CRM 5 Pillars
+    pillar1Pipeline: '१. सेल्स पाइपलाइन एवं सौदे',
+    pillar2Leads: '२. लीड प्रबंधन',
+    pillar3Communication: '३. संवाद एवं गतिविधि',
+    pillar4Tasks: '४. कार्य एवं टास्क प्रबंधन',
+    pillar5Team: '५. टीम एवं यूज़र प्रबंधन',
+    navPipeline: 'पाइपलाइन व सौदे',
+    navCommunicationHub: 'कम्युनिकेशन हब',
+    navTasks: 'टास्क व ऑपरेशन्स',
+    pipelineTitle: 'सेल्स पाइपलाइन व डील प्रबंधन',
+    pipelineSubtitle: 'चरणों, जीत की संभावना, और बयाना राशि के आधार पर डील्स ट्रैक करें।',
+    taskManagementTitle: 'टास्क एवं फॉलो-अप प्रबंधन',
+    taskManagementSubtitle: 'दैनिक कार्यों, साइट विज़िट्स और टोकन कलेक्शन का कुशल समन्वय।',
+    commHubTitle: 'कम्युनिकेशन एवं एक्टिविटी केंद्र',
+    commHubSubtitle: 'कॉल लॉग्स, व्हाट्सएप संदेश और टीम की लाइव गतिविधि का एकीकृत दृश्य।',
+    createDeal: '+ नई डील बनाएं',
+    addTask: '+ नया टास्क जोड़ें',
+
     // Sidebar Navigation
     navDashboard: 'डैशबोर्ड (Dashboard)',
     navMyDashboard: 'मेरा डैशबोर्ड',
@@ -263,6 +299,24 @@ export const TRANSLATIONS: Record<Language, Record<string, string>> = {
     addLead: '+ Nayi Lead Jodein',
     selectLanguage: 'Language Badlein',
     changeLanguage: 'Select Language',
+
+    // CRM 5 Pillars
+    pillar1Pipeline: '1. Sales Pipeline & Deals',
+    pillar2Leads: '2. Lead Management',
+    pillar3Communication: '3. Communication & Activity',
+    pillar4Tasks: '4. Task Management',
+    pillar5Team: '5. User & Team Management',
+    navPipeline: 'Pipeline & Deals',
+    navCommunicationHub: 'Communication Hub',
+    navTasks: 'Tasks & Follow-ups',
+    pipelineTitle: 'Sales Pipeline & Deal Management',
+    pipelineSubtitle: 'Deals, stage conversion, aur token payment ko live track karein.',
+    taskManagementTitle: 'Task & Follow-up Management',
+    taskManagementSubtitle: 'Daily tasks, site visits aur collection work coordinate karein.',
+    commHubTitle: 'Communication & Activity Center',
+    commHubSubtitle: 'Call logs, WhatsApp message templates, aur real-time sales feed.',
+    createDeal: '+ Nayi Deal Banayein',
+    addTask: '+ Naya Task Jodein',
 
     // Sidebar Navigation
     navDashboard: 'Dashboard',

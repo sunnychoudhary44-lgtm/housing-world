@@ -292,8 +292,11 @@ export interface SalesTarget {
 
 export type ActivePage =
   | 'dashboard'
+  | 'pipeline'
   | 'leads'
   | 'add'
+  | 'communication'
+  | 'tasks'
   | 'tokens_agreements'
   | 'site_visits'
   | 'cost_sheets'
@@ -388,4 +391,74 @@ export interface WhatsAppTemplate {
   title: string;
   labelHindi: string;
   message: string;
+}
+
+// Sales Pipeline & Deals Management
+export type DealStage =
+  | 'Discovery'
+  | 'Site Visit Scheduled'
+  | 'Site Visit Completed'
+  | 'Negotiation & Proposal'
+  | 'Token Received'
+  | 'Agreement Signed'
+  | 'Closed Won'
+  | 'Closed Lost';
+
+export interface Deal {
+  id: string;
+  dealNumber: string; // e.g. "DL-2026-101"
+  title: string;
+  leadId?: number;
+  clientName: string;
+  clientMobile: string;
+  clientEmail?: string;
+  projectName: string;
+  projectId?: string;
+  unitNumber?: string;
+  size?: string; // "150 Gaj", "3 BHK Luxury"
+  dealValue: number; // in ₹
+  tokenAmountPaid?: number; // in ₹
+  expectedCloseDate: string; // YYYY-MM-DD
+  stage: DealStage;
+  probability: number; // 0 to 100%
+  priority: 'Hot' | 'High' | 'Normal';
+  salesperson: string;
+  brokerName?: string;
+  brokerCommission?: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// Task Management
+export type TaskCategory =
+  | 'Site Visit'
+  | 'Payment & Token'
+  | 'Cost Sheet & Quote'
+  | 'Document & KYC'
+  | 'Callback & Follow-up'
+  | 'Legal & Registry'
+  | 'Other';
+
+export type TaskPriority = 'Urgent' | 'High' | 'Medium' | 'Low';
+export type TaskStatus = 'Pending' | 'In Progress' | 'Completed' | 'Overdue';
+
+export interface CrmTask {
+  id: string;
+  title: string;
+  description?: string;
+  category: TaskCategory;
+  priority: TaskPriority;
+  status: TaskStatus;
+  dueDate: string; // YYYY-MM-DD
+  dueTime?: string; // HH:mm
+  assignedTo: string;
+  leadId?: number;
+  leadName?: string;
+  leadMobile?: string;
+  dealId?: string;
+  projectName?: string;
+  completedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
 }

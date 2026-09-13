@@ -1,6 +1,6 @@
 {
   "name": "Housing Worlds — Lead CRM",
-  "description": "Real-Estate CRM for Leads, Tokens & Agreements Tracking, Site Visits, Cost Sheets, Channel Partners, and Sales Follow-ups.",
+  "description": "Comprehensive Real Estate CRM organized across 5 core pillars: Sales Pipeline & Deals, Lead Management, Communication & Activity, Task Management, and User & Team Management with multi-language support (English, Hindi, Hinglish).",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

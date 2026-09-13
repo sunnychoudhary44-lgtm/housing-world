@@ -235,7 +235,98 @@
         "bookedByBrokerName": { "type": "string", "description": "Channel partner if sourced" }
       },
       "required": ["id", "projectId", "unitNumber", "status"]
+    },
+    "site_visits": {
+      "title": "Site Visits",
+      "description": "Customer site inspections and property visit logs",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "leadId": { "type": "number", "description": "Associated lead id" },
+        "leadName": { "type": "string", "description": "Lead customer name" },
+        "mobile": { "type": "string", "description": "Lead phone number" },
+        "projectId": { "type": "string", "description": "Project ID" },
+        "projectName": { "type": "string", "description": "Project Name" },
+        "salesperson": { "type": "string", "description": "Assigned executive" },
+        "visitDate": { "type": "string", "description": "Scheduled or completed visit date" },
+        "status": { "type": "string", "description": "Scheduled, Completed, Cancelled, Rescheduled" },
+        "cabAssigned": { "type": "boolean", "description": "Whether cab was provided" },
+        "feedback": { "type": "string", "description": "Customer feedback" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "leadName", "projectName", "visitDate", "status"]
+    },
+    "cost_sheets": {
+      "title": "Cost Sheets",
+      "description": "Detailed real estate property pricing and payment breakdown sheets",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "projectName": { "type": "string", "description": "Project name" },
+        "unitType": { "type": "string", "description": "Configuration" },
+        "totalCost": { "type": "number", "description": "All inclusive total cost in INR" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "projectName", "totalCost"]
+    },
+    "tokens_agreements": {
+      "title": "Tokens and Agreements",
+      "description": "Booking token receipts, builder buyer agreements (BBA), and registry records",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "leadName": { "type": "string", "description": "Customer name" },
+        "projectName": { "type": "string", "description": "Project name" },
+        "tokenAmount": { "type": "number", "description": "Token amount received" },
+        "status": { "type": "string", "description": "Agreement status" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "leadName", "projectName", "tokenAmount"]
+    },
+    "deals": {
+      "title": "Deals",
+      "description": "Sales pipeline deals and transactions across stages",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "title": { "type": "string", "description": "Deal title or description" },
+        "leadId": { "type": "number", "description": "Associated lead ID" },
+        "leadName": { "type": "string", "description": "Client name" },
+        "mobile": { "type": "string", "description": "Client mobile" },
+        "projectId": { "type": "string", "description": "Project ID" },
+        "projectName": { "type": "string", "description": "Project name" },
+        "unitNumber": { "type": "string", "description": "Unit or plot number" },
+        "dealValue": { "type": "number", "description": "Total deal value in INR" },
+        "stage": { "type": "string", "description": "Pipeline stage" },
+        "probability": { "type": "number", "description": "Closing probability percentage" },
+        "assignedTo": { "type": "string", "description": "Sales executive name" },
+        "expectedCloseDate": { "type": "string", "description": "Expected closing date" },
+        "notes": { "type": "string", "description": "Deal notes" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" },
+        "updatedAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "title", "leadName", "dealValue", "stage", "assignedTo"]
+    },
+    "tasks": {
+      "title": "Tasks",
+      "description": "Sales follow-up and operational action tasks",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier" },
+        "title": { "type": "string", "description": "Task summary" },
+        "type": { "type": "string", "description": "Call, Follow-up, Site Visit, Document, Meeting, Other" },
+        "priority": { "type": "string", "description": "High, Medium, Low" },
+        "status": { "type": "string", "description": "Pending, In Progress, Completed, Cancelled" },
+        "assignedTo": { "type": "string", "description": "Sales executive" },
+        "leadId": { "type": "number", "description": "Associated lead ID" },
+        "leadName": { "type": "string", "description": "Client name" },
+        "dueDate": { "type": "string", "description": "Due date" },
+        "dueTime": { "type": "string", "description": "Due time" },
+        "description": { "type": "string", "description": "Task details" },
+        "createdAt": { "type": "string", "description": "ISO timestamp" }
+      },
+      "required": ["id", "title", "type", "priority", "status", "assignedTo", "dueDate"]
     }
   },
-  "firestoreRules": "rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /leads/{leadId} {\n      allow read, write: if true;\n    }\n    match /calls/{callId} {\n      allow read, write: if true;\n    }\n    match /users/{userId} {\n      allow read, write: if true;\n    }\n    match /developers/{devId} {\n      allow read, write: if true;\n    }\n    match /projects/{projId} {\n      allow read, write: if true;\n    }\n    match /brokers/{brokerId} {\n      allow read, write: if true;\n    }\n    match /units/{unitId} {\n      allow read, write: if true;\n    }\n  }\n}"
+  "firestoreRules": "rules_version = '2';\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    match /leads/{leadId} {\n      allow read, write: if true;\n    }\n    match /calls/{callId} {\n      allow read, write: if true;\n    }\n    match /users/{userId} {\n      allow read, write: if true;\n    }\n    match /developers/{devId} {\n      allow read, write: if true;\n    }\n    match /projects/{projId} {\n      allow read, write: if true;\n    }\n    match /brokers/{brokerId} {\n      allow read, write: if true;\n    }\n    match /units/{unitId} {\n      allow read, write: if true;\n    }\n    match /site_visits/{visitId} {\n      allow read, write: if true;\n    }\n    match /cost_sheets/{sheetId} {\n      allow read, write: if true;\n    }\n    match /tokens_agreements/{recordId} {\n      allow read, write: if true;\n    }\n    match /deals/{dealId} {\n      allow read, write: if true;\n    }\n    match /tasks/{taskId} {\n      allow read, write: if true;\n    }\n  }\n}"
 }

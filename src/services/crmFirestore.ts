@@ -19,6 +19,8 @@ import {
   SiteVisit,
   CostSheet,
   TokenAgreement,
+  Deal,
+  CrmTask,
 } from '../types';
 
 // Helper to remove undefined values before sending to Firestore
@@ -509,6 +511,40 @@ export async function seedRealEstateIfEmpty(
 }
 
 /**
+ * Seed deals and tasks if they are empty in Firestore.
+ */
+export async function seedDealsAndTasksIfEmpty(
+  initialDeals: Deal[],
+  initialTasks: CrmTask[]
+): Promise<void> {
+  try {
+    const dealsSnap = await getDocs(collection(db, DEALS_COLLECTION));
+    if (dealsSnap.empty && initialDeals.length > 0) {
+      const batch = writeBatch(db);
+      initialDeals.forEach((deal) => {
+        const ref = doc(db, DEALS_COLLECTION, deal.id);
+        batch.set(ref, cleanObject(deal));
+      });
+      await batch.commit();
+      console.log('Deals data seeded successfully!');
+    }
+
+    const tasksSnap = await getDocs(collection(db, TASKS_COLLECTION));
+    if (tasksSnap.empty && initialTasks.length > 0) {
+      const batch = writeBatch(db);
+      initialTasks.forEach((task) => {
+        const ref = doc(db, TASKS_COLLECTION, task.id);
+        batch.set(ref, cleanObject(task));
+      });
+      await batch.commit();
+      console.log('Tasks data seeded successfully!');
+    }
+  } catch (err) {
+    console.warn('Note on seeding deals and tasks:', err);
+  }
+}
+
+/**
  * Listen for real-time updates to site_visits collection.
  */
 export function subscribeToSiteVisits(
@@ -636,6 +672,80 @@ export async function deleteTokenAgreementFromCloud(id: string): Promise<void> {
   const recordRef = doc(db, TOKENS_AGREEMENTS_COLLECTION, id);
   await deleteDoc(recordRef);
 }
+
+const DEALS_COLLECTION = 'deals';
+const TASKS_COLLECTION = 'tasks';
+
+/**
+ * Subscribe to real-time updates for Deals.
+ */
+export function subscribeToDeals(
+  onData: (deals: Deal[]) => void,
+  onError?: (error: Error) => void
+) {
+  const ref = collection(db, DEALS_COLLECTION);
+  return onSnapshot(
+    ref,
+    (snapshot) => {
+      const records: Deal[] = [];
+      snapshot.forEach((docSnap) => {
+        records.push(docSnap.data() as Deal);
+      });
+      records.sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+      onData(records);
+    },
+    (err) => {
+      console.error('Error listening to deals:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+export async function saveDealToCloud(deal: Deal): Promise<void> {
+  const dealRef = doc(db, DEALS_COLLECTION, deal.id);
+  await setDoc(dealRef, cleanObject(deal), { merge: true });
+}
+
+export async function deleteDealFromCloud(dealId: string): Promise<void> {
+  const dealRef = doc(db, DEALS_COLLECTION, dealId);
+  await deleteDoc(dealRef);
+}
+
+/**
+ * Subscribe to real-time updates for Tasks.
+ */
+export function subscribeToTasks(
+  onData: (tasks: CrmTask[]) => void,
+  onError?: (error: Error) => void
+) {
+  const ref = collection(db, TASKS_COLLECTION);
+  return onSnapshot(
+    ref,
+    (snapshot) => {
+      const records: CrmTask[] = [];
+      snapshot.forEach((docSnap) => {
+        records.push(docSnap.data() as CrmTask);
+      });
+      records.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+      onData(records);
+    },
+    (err) => {
+      console.error('Error listening to tasks:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+export async function saveTaskToCloud(task: CrmTask): Promise<void> {
+  const taskRef = doc(db, TASKS_COLLECTION, task.id);
+  await setDoc(taskRef, cleanObject(task), { merge: true });
+}
+
+export async function deleteTaskFromCloud(taskId: string): Promise<void> {
+  const taskRef = doc(db, TASKS_COLLECTION, taskId);
+  await deleteDoc(taskRef);
+}
+
 
 
 

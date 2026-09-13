@@ -24,8 +24,11 @@ import {
   Award,
   Phone,
   IndianRupee,
+  Kanban,
+  CheckSquare,
+  Briefcase,
 } from 'lucide-react';
-import { ActivePage, Lead, CallLog, AuthUser, SiteVisit, TokenAgreement } from '../types';
+import { ActivePage, Lead, CallLog, AuthUser, SiteVisit, TokenAgreement, Deal, CrmTask } from '../types';
 import {
   fmt,
   openWhatsApp,
@@ -45,6 +48,8 @@ interface DashboardViewProps {
   calls?: CallLog[];
   siteVisits?: SiteVisit[];
   tokensAgreements?: TokenAgreement[];
+  deals?: Deal[];
+  tasks?: CrmTask[];
   currentUser?: AuthUser | null;
   users?: AuthUser[];
   onNavigate: (page: ActivePage) => void;
@@ -59,6 +64,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   calls = [],
   siteVisits: siteVisitsList = [],
   tokensAgreements: tokensAgreementsList = [],
+  deals = [],
+  tasks = [],
   currentUser,
   users = [],
   onNavigate,
@@ -272,6 +279,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       .reduce((sum, t) => sum + (t.tokenAmount || 0), 0);
   }, [memberFilteredTokens, todayStr]);
 
+  // CRM 5 Pillars aggregates
+  const pendingTasksCount = useMemo(() => {
+    return tasks.filter((t) => t.status !== 'Completed').length;
+  }, [tasks]);
+
+  const pipelineValue = useMemo(() => {
+    return deals.reduce((acc, d) => acc + (d.dealValue || 0), 0);
+  }, [deals]);
+
   // Metric card definitions
   const statCards = [
     {
@@ -437,6 +453,119 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <ArrowUpRight className="w-3.5 h-3.5" />
           </button>
         </div>
+      </div>
+
+      {/* 5 CRM Pillars Quick Navigation Hub */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {/* Pillar 1 */}
+        <button
+          type="button"
+          onClick={() => onNavigate('pipeline')}
+          className="bg-white hover:bg-amber-50/50 p-3.5 rounded-xl border border-slate-200/90 hover:border-amber-300 shadow-2xs transition-all text-left group cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="p-1.5 rounded-lg bg-amber-100 text-amber-700 group-hover:scale-105 transition-transform">
+              <Kanban className="w-4 h-4" />
+            </span>
+            <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+              Pillar 1
+            </span>
+          </div>
+          <div className="text-xs font-semibold text-slate-900 group-hover:text-amber-900 line-clamp-1">
+            {t('salesPipelineAndDeal', 'Sales Pipeline & Deal')}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-0.5">
+            {deals.length} deals • {formatINR(pipelineValue, true)}
+          </div>
+        </button>
+
+        {/* Pillar 2 */}
+        <button
+          type="button"
+          onClick={() => onNavigate('leads')}
+          className="bg-white hover:bg-blue-50/50 p-3.5 rounded-xl border border-slate-200/90 hover:border-blue-300 shadow-2xs transition-all text-left group cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="p-1.5 rounded-lg bg-blue-100 text-blue-700 group-hover:scale-105 transition-transform">
+              <Users className="w-4 h-4" />
+            </span>
+            <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
+              Pillar 2
+            </span>
+          </div>
+          <div className="text-xs font-semibold text-slate-900 group-hover:text-blue-900 line-clamp-1">
+            {t('leadManagement', 'Lead Management')}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-0.5">
+            {activeLeads.length} active leads
+          </div>
+        </button>
+
+        {/* Pillar 3 */}
+        <button
+          type="button"
+          onClick={() => onNavigate('communication')}
+          className="bg-white hover:bg-emerald-50/50 p-3.5 rounded-xl border border-slate-200/90 hover:border-emerald-300 shadow-2xs transition-all text-left group cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="p-1.5 rounded-lg bg-emerald-100 text-emerald-700 group-hover:scale-105 transition-transform">
+              <PhoneCall className="w-4 h-4" />
+            </span>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+              Pillar 3
+            </span>
+          </div>
+          <div className="text-xs font-semibold text-slate-900 group-hover:text-emerald-900 line-clamp-1">
+            {t('communicationAndActivity', 'Communication & Activity')}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-0.5">
+            {activeCalls.length} logs • Calls/Visits
+          </div>
+        </button>
+
+        {/* Pillar 4 */}
+        <button
+          type="button"
+          onClick={() => onNavigate('tasks')}
+          className="bg-white hover:bg-purple-50/50 p-3.5 rounded-xl border border-slate-200/90 hover:border-purple-300 shadow-2xs transition-all text-left group cursor-pointer"
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="p-1.5 rounded-lg bg-purple-100 text-purple-700 group-hover:scale-105 transition-transform">
+              <CheckSquare className="w-4 h-4" />
+            </span>
+            <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200">
+              Pillar 4
+            </span>
+          </div>
+          <div className="text-xs font-semibold text-slate-900 group-hover:text-purple-900 line-clamp-1">
+            {t('taskManagement', 'Task Management')}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-0.5">
+            {pendingTasksCount} pending / {tasks.length} total
+          </div>
+        </button>
+
+        {/* Pillar 5 */}
+        <button
+          type="button"
+          onClick={() => onNavigate('team')}
+          className="bg-white hover:bg-indigo-50/50 p-3.5 rounded-xl border border-slate-200/90 hover:border-indigo-300 shadow-2xs transition-all text-left group cursor-pointer col-span-2 sm:col-span-1"
+        >
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="p-1.5 rounded-lg bg-indigo-100 text-indigo-700 group-hover:scale-105 transition-transform">
+              <ShieldCheck className="w-4 h-4" />
+            </span>
+            <span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 px-1.5 py-0.5 rounded border border-indigo-200">
+              Pillar 5
+            </span>
+          </div>
+          <div className="text-xs font-semibold text-slate-900 group-hover:text-indigo-900 line-clamp-1">
+            {t('userAndTeamManagement', 'User & Team Management')}
+          </div>
+          <div className="text-[11px] text-slate-500 mt-0.5">
+            {allTeamMembers.length} team members
+          </div>
+        </button>
       </div>
 
       {/* ========================================================================= */}
