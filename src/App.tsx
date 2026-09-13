@@ -16,6 +16,7 @@ import {
   TokenAgreement,
   Deal,
   CrmTask,
+  CrmMeeting,
 } from './types';
 import {
   INITIAL_LEADS,
@@ -34,6 +35,7 @@ import {
   INITIAL_TOKENS_AGREEMENTS,
   INITIAL_DEALS,
   INITIAL_TASKS,
+  INITIAL_MEETINGS,
 } from './data/realEstateData';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -48,8 +50,11 @@ import { BrokersView } from './components/BrokersView';
 import { SiteVisitsView } from './components/SiteVisitsView';
 import { CostSheetView } from './components/CostSheetView';
 import { TokensAgreementsView } from './components/TokensAgreementsView';
+import { DevelopersView } from './components/DevelopersView';
+import { ProjectsView } from './components/ProjectsView';
 import { SalesPipelineView } from './components/SalesPipelineView';
 import { TasksView } from './components/TasksView';
+import { MeetingsView } from './components/MeetingsView';
 import { CommunicationHubView } from './components/CommunicationHubView';
 import { WhatsAppTemplatesModal } from './components/WhatsAppTemplatesModal';
 import { LeadDetailModal } from './components/LeadDetailModal';
@@ -94,8 +99,12 @@ import {
   subscribeToTasks,
   saveTaskToCloud,
   deleteTaskFromCloud,
+  subscribeToMeetings,
+  saveMeetingToCloud,
+  deleteMeetingFromCloud,
   seedRealEstateIfEmpty,
   seedDealsAndTasksIfEmpty,
+  seedMeetingsIfEmpty,
 } from './services/crmFirestore';
 import { CheckCircle2, Info, Crown, Lock, User, ShieldCheck } from 'lucide-react';
 
@@ -263,6 +272,18 @@ export default function App() {
       }
     } catch (e) {}
     return INITIAL_TASKS;
+  });
+
+  // Real Estate Meeting Pipeline & Daily Scheduled Tracker
+  const [meetings, setMeetings] = useState<CrmMeeting[]>(() => {
+    try {
+      const s = localStorage.getItem('hwcrm_meetings');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_MEETINGS;
   });
 
   const [developerFilterForProjects, setDeveloperFilterForProjects] = useState<string>('');
@@ -445,6 +466,19 @@ export default function App() {
       (err) => console.warn('Tasks subscription note:', err)
     );
 
+    // Real-time synchronization for Daily Scheduled Meetings & Pipeline
+    const unsubscribeMeetings = subscribeToMeetings(
+      (cloudMeetings) => {
+        if (cloudMeetings && cloudMeetings.length > 0) {
+          setMeetings(cloudMeetings);
+          try {
+            localStorage.setItem('hwcrm_meetings', JSON.stringify(cloudMeetings));
+          } catch (e) {}
+        }
+      },
+      (err) => console.warn('Meetings subscription note:', err)
+    );
+
     // Initialize initial seed data if collections are newly initialized
     seedRealEstateIfEmpty(
       INITIAL_DEVELOPERS,
@@ -457,6 +491,7 @@ export default function App() {
     );
 
     seedDealsAndTasksIfEmpty(INITIAL_DEALS, INITIAL_TASKS);
+    seedMeetingsIfEmpty(INITIAL_MEETINGS);
 
     return () => {
       unsubscribeLeads();
@@ -471,6 +506,7 @@ export default function App() {
       unsubscribeTokensAgreements();
       unsubscribeDeals();
       unsubscribeTasks();
+      unsubscribeMeetings();
     };
   }, []);
 
@@ -503,6 +539,25 @@ export default function App() {
       console.error('Failed to save calls to localStorage', err);
     }
   }, [calls]);
+
+  // Sync developers, projects, and units to localStorage as offline fallback
+  useEffect(() => {
+    try {
+      localStorage.setItem('hwcrm_developers', JSON.stringify(developers));
+    } catch (e) {}
+  }, [developers]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('hwcrm_projects', JSON.stringify(projects));
+    } catch (e) {}
+  }, [projects]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('hwcrm_units', JSON.stringify(units));
+    } catch (e) {}
+  }, [units]);
 
   // Open Log Call modal
   const handleOpenLogCallModal = (lead?: Lead | null) => {
@@ -608,6 +663,22 @@ export default function App() {
       return t.assignedTo.trim().toLowerCase() === userNameLower;
     });
   }, [tasks, currentUser]);
+
+  // Real Estate Meeting Pipeline & Daily Tracker isolation
+  const visibleMeetings = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'admin') return meetings;
+    const userNameLower = (currentUser.name || '').trim().toLowerCase();
+    return meetings.filter((m) => {
+      if (!m.salesperson) return true;
+      return m.salesperson.trim().toLowerCase() === userNameLower;
+    });
+  }, [meetings, currentUser]);
+
+  const todayMeetingsCount = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return visibleMeetings.filter((m) => m.meetingDate === today && m.stage !== 'Cancelled').length;
+  }, [visibleMeetings]);
 
   // Lead Save handler (Add or Update)
   const handleSaveLead = (leadData: Omit<Lead, 'id'> & { id?: number }) => {
@@ -1137,6 +1208,38 @@ export default function App() {
     showToast('Task status updated.');
   };
 
+  // Real Estate Meeting Handlers
+  const handleSaveMeeting = (meeting: CrmMeeting) => {
+    setMeetings((prev) => {
+      const idx = prev.findIndex((m) => m.id === meeting.id);
+      let next: CrmMeeting[];
+      if (idx >= 0) {
+        next = [...prev];
+        next[idx] = meeting;
+      } else {
+        next = [meeting, ...prev];
+      }
+      try {
+        localStorage.setItem('hwcrm_meetings', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+    saveMeetingToCloud(meeting).catch(console.error);
+    showToast(`Meeting with "${meeting.clientName}" saved!`);
+  };
+
+  const handleDeleteMeeting = (meetingId: string) => {
+    setMeetings((prev) => {
+      const next = prev.filter((m) => m.id !== meetingId);
+      try {
+        localStorage.setItem('hwcrm_meetings', JSON.stringify(next));
+      } catch (e) {}
+      return next;
+    });
+    deleteMeetingFromCloud(meetingId).catch(console.error);
+    showToast('Meeting record removed.');
+  };
+
   // Start editing a lead
   const handleStartEdit = (id: number) => {
     setEditingLeadId(id);
@@ -1245,10 +1348,13 @@ export default function App() {
           dealsCount={visibleDeals.length}
           tasksCount={visibleTasks.filter((t) => t.status !== 'Completed').length}
           currentUser={currentUser}
+          developersCount={developers.length}
+          projectsCount={projects.length}
           brokersCount={brokers.length}
           siteVisitsCount={siteVisits.length}
           costSheetsCount={costSheets.length}
           tokensAgreementsCount={visibleTokensAgreements.length}
+          meetingsCount={todayMeetingsCount}
         />
 
         {/* Main Content Area */}
@@ -1261,6 +1367,7 @@ export default function App() {
               tokensAgreements={visibleTokensAgreements}
               deals={visibleDeals}
               tasks={visibleTasks}
+              meetings={visibleMeetings}
               currentUser={currentUser}
               users={users}
               onNavigate={(page) => {
@@ -1363,6 +1470,37 @@ export default function App() {
             />
           )}
 
+          {/* Sell.Do Real Estate Suite: Developers & Mandates */}
+          {activePage === 'developers' && (
+            <DevelopersView
+              developers={developers}
+              projects={projects}
+              currentUser={currentUser}
+              onSaveDeveloper={async (dev) => handleSaveDeveloper(dev)}
+              onDeleteDeveloper={async (id) => handleDeleteDeveloper(id)}
+              onViewProjectsForDeveloper={(devId) => {
+                setDeveloperFilterForProjects(devId);
+                setActivePage('projects');
+              }}
+            />
+          )}
+
+          {/* Sell.Do Real Estate Suite: Projects & Inventory */}
+          {activePage === 'projects' && (
+            <ProjectsView
+              projects={projects}
+              developers={developers}
+              units={units}
+              leads={visibleLeads}
+              currentUser={currentUser}
+              initialDeveloperFilter={developerFilterForProjects}
+              onSaveProject={async (proj) => handleSaveProject(proj)}
+              onDeleteProject={async (id) => handleDeleteProject(id)}
+              onSaveUnit={async (unit) => handleSaveUnit(unit)}
+              onDeleteUnit={async (id) => handleDeleteUnit(id)}
+            />
+          )}
+
           {/* Sell.Do Real Estate Suite: Brokers & Channel Partners */}
           {activePage === 'brokers' && (
             <BrokersView
@@ -1413,6 +1551,19 @@ export default function App() {
               onDeleteDeal={handleDeleteDeal}
               onNavigate={(page) => setActivePage(page)}
               onOpenLogModal={handleOpenLogCallModal}
+              onViewLeadDetail={(lead) => setDetailLead(lead)}
+            />
+          )}
+
+          {/* Daily Scheduled Meeting Pipeline & Meeting Tracker */}
+          {activePage === 'meetings' && (
+            <MeetingsView
+              meetings={visibleMeetings}
+              leads={visibleLeads}
+              projects={projects}
+              currentUser={currentUser}
+              onSaveMeeting={handleSaveMeeting}
+              onDeleteMeeting={handleDeleteMeeting}
               onViewLeadDetail={(lead) => setDetailLead(lead)}
             />
           )}

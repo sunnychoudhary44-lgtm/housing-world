@@ -37,5 +37,8 @@ service cloud.firestore {
     match /tasks/{taskId} {
       allow read, write: if true;
     }
+    match /meetings/{meetingId} {
+      allow read, write: if true;
+    }
   }
 }

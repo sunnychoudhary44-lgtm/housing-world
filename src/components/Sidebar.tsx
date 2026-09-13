@@ -38,6 +38,7 @@ interface SidebarProps {
   siteVisitsCount?: number;
   costSheetsCount?: number;
   tokensAgreementsCount?: number;
+  meetingsCount?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -54,6 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   siteVisitsCount = 0,
   costSheetsCount = 0,
   tokensAgreementsCount = 0,
+  meetingsCount = 0,
 }) => {
   const isAdmin = currentUser?.role === 'admin';
   const { t } = useLanguage();
@@ -86,6 +88,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: <Kanban className="w-4 h-4 shrink-0 text-blue-400" />,
       badge: dealsCount > 0 ? dealsCount : undefined,
       badgeColor: 'bg-blue-500/20 text-blue-300 border border-blue-500/40 font-bold',
+    },
+    {
+      id: 'meetings',
+      label: t('navMeetings', 'Meetings & Tracker'),
+      pillarNum: 'M',
+      icon: <CalendarClock className="w-4 h-4 shrink-0 text-teal-400" />,
+      badge: meetingsCount > 0 ? meetingsCount : undefined,
+      badgeColor: 'bg-teal-500/20 text-teal-300 border border-teal-500/40 font-bold',
     },
     {
       id: 'leads',
@@ -156,14 +166,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'projects',
-      label: 'Projects & Inventory',
+      label: t('navProjects', 'Projects & Inventory'),
       icon: <Building className="w-4 h-4 shrink-0 text-teal-400" />,
       badge: projectsCount > 0 ? projectsCount : undefined,
       badgeColor: 'bg-teal-950 text-teal-300 border border-teal-700/50',
     },
     {
       id: 'developers',
-      label: 'Developers & Mandates',
+      label: t('navDevelopers', 'Developers & Mandates'),
       icon: <HardHat className="w-4 h-4 shrink-0 text-orange-400" />,
       badge: developersCount > 0 ? developersCount : undefined,
       badgeColor: 'bg-orange-950 text-orange-300 border border-orange-700/50',

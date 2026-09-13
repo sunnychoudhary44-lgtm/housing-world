@@ -293,6 +293,7 @@ export interface SalesTarget {
 export type ActivePage =
   | 'dashboard'
   | 'pipeline'
+  | 'meetings'
   | 'leads'
   | 'add'
   | 'communication'
@@ -459,6 +460,49 @@ export interface CrmTask {
   dealId?: string;
   projectName?: string;
   completedAt?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+// Meeting Pipeline & Daily Tracker
+export type MeetingStage =
+  | 'Scheduled'
+  | 'In Progress'
+  | 'Completed'
+  | 'Follow-up Needed'
+  | 'Rescheduled'
+  | 'Cancelled'
+  | 'No Show';
+
+export type MeetingType =
+  | 'Face to Face (Office Lounge)'
+  | 'Site Visit & Walkthrough'
+  | 'Virtual (Zoom / Google Meet)'
+  | 'Price Negotiation & Token'
+  | 'Client Home / Office Visit';
+
+export interface CrmMeeting {
+  id: string;
+  meetingNumber: string; // e.g. "MT-2026-001"
+  title: string;
+  leadId?: number;
+  clientName: string;
+  clientMobile: string;
+  clientEmail?: string;
+  projectName?: string;
+  projectId?: string;
+  salesperson: string;
+  meetingDate: string; // YYYY-MM-DD
+  startTime: string; // HH:mm e.g. "11:30"
+  endTime?: string; // HH:mm e.g. "12:30"
+  meetingType: MeetingType;
+  stage: MeetingStage;
+  locationOrLink?: string; // e.g. "HousingWorld Sales Lounge, Sector 65" or "https://meet.google.com/xyz"
+  agenda?: string; // Meeting objective
+  discussionPoints?: string; // MOM notes during meeting
+  outcome?: string; // Decision reached (e.g. Unit selected, Token committed)
+  dealId?: string;
+  nextStepDate?: string; // YYYY-MM-DD
   createdAt: string;
   updatedAt?: string;
 }

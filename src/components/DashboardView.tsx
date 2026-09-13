@@ -27,8 +27,9 @@ import {
   Kanban,
   CheckSquare,
   Briefcase,
+  CalendarClock,
 } from 'lucide-react';
-import { ActivePage, Lead, CallLog, AuthUser, SiteVisit, TokenAgreement, Deal, CrmTask } from '../types';
+import { ActivePage, Lead, CallLog, AuthUser, SiteVisit, TokenAgreement, Deal, CrmTask, CrmMeeting } from '../types';
 import {
   fmt,
   openWhatsApp,
@@ -50,6 +51,7 @@ interface DashboardViewProps {
   tokensAgreements?: TokenAgreement[];
   deals?: Deal[];
   tasks?: CrmTask[];
+  meetings?: CrmMeeting[];
   currentUser?: AuthUser | null;
   users?: AuthUser[];
   onNavigate: (page: ActivePage) => void;
@@ -66,6 +68,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   tokensAgreements: tokensAgreementsList = [],
   deals = [],
   tasks = [],
+  meetings = [],
   currentUser,
   users = [],
   onNavigate,
@@ -288,6 +291,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     return deals.reduce((acc, d) => acc + (d.dealValue || 0), 0);
   }, [deals]);
 
+  // Meetings filtering
+  const memberFilteredMeetings = useMemo(() => {
+    if (!selectedMember) return meetings;
+    const q = selectedMember.toLowerCase().trim();
+    return meetings.filter(
+      (m) => m.salesperson && m.salesperson.toLowerCase().trim() === q
+    );
+  }, [meetings, selectedMember]);
+
+  const todayMeetings = useMemo(() => {
+    return memberFilteredMeetings.filter((m) => m.meetingDate === todayStr && m.stage !== 'Cancelled');
+  }, [memberFilteredMeetings, todayStr]);
+
   // Metric card definitions
   const statCards = [
     {
@@ -421,6 +437,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => onNavigate('meetings')}
+            className="px-3 py-1.5 text-xs sm:text-sm font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100/80 border border-teal-200 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+          >
+            <CalendarClock className="w-3.5 h-3.5 text-teal-600" />
+            <span>{t('navMeetings', 'Meetings & Tracker')} ({todayMeetings.length})</span>
+          </button>
+
           {onOpenLogModal && (
             <button
               type="button"
@@ -873,6 +898,96 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
             <p className="text-[11px] text-slate-500 mt-1 truncate">{c.sub}</p>
           </div>
         ))}
+      </div>
+
+      {/* Today's Scheduled Meetings Highlight Widget */}
+      <div className="bg-gradient-to-r from-teal-900 via-slate-900 to-teal-950 text-white rounded-2xl p-4 sm:p-5 border border-teal-700/50 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-teal-800/60">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-teal-500/20 border border-teal-400/30 text-teal-300">
+              <CalendarClock className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <span>आज की शेड्यूल्ड क्लाइंट मीटिंग्स (Today's Scheduled Meetings)</span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-teal-500/30 text-teal-200 border border-teal-400/30 font-semibold">
+                  {todayMeetings.length} Scheduled
+                </span>
+              </h3>
+              <p className="text-xs text-teal-200/70 mt-0.5">
+                Daily Scheduled Meeting Pipeline & Time-Slot Tracker
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => onNavigate('meetings')}
+              className="px-3 py-1.5 text-xs font-semibold bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <span>ओपन मीटिंग ट्रैकर & पाइपलाइन</span>
+              <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {todayMeetings.length === 0 ? (
+          <div className="py-4 text-center">
+            <p className="text-xs text-teal-200/70">
+              आज के लिए कोई मीटिंग शेड्यूल नहीं है। नई मीटिंग शेड्यूल करने के लिए मीटिंग पाइपलाइन में जाएं।
+            </p>
+            <button
+              type="button"
+              onClick={() => onNavigate('meetings')}
+              className="mt-2 text-xs font-semibold text-teal-300 hover:text-teal-100 underline inline-flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3 h-3" />
+              <span>+ शेड्यूल न्यू मीटिंग</span>
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-3.5">
+            {todayMeetings.map((m) => (
+              <div
+                key={m.id}
+                onClick={() => onNavigate('meetings')}
+                className="bg-slate-800/80 hover:bg-slate-800 p-3 rounded-xl border border-teal-600/30 hover:border-teal-400/50 transition-all cursor-pointer flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <span className="text-xs font-bold text-teal-300 flex items-center gap-1 bg-teal-950/60 px-2 py-0.5 rounded border border-teal-700/50">
+                      <Clock className="w-3 h-3 text-teal-400" />
+                      {m.meetingTime} ({m.timeSlot})
+                    </span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-700 text-slate-200 border border-slate-600">
+                      {m.stage}
+                    </span>
+                  </div>
+
+                  <div className="font-semibold text-sm text-white truncate">
+                    {m.clientName}
+                  </div>
+                  <div className="text-xs text-slate-300 flex items-center gap-1.5 mt-0.5 truncate">
+                    <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span>{m.clientPhone}</span>
+                  </div>
+                  {m.projectName && (
+                    <div className="text-[11px] text-teal-300/90 mt-1 truncate">
+                      🏢 {m.projectName} {m.unitInterest ? `• Unit: ${m.unitInterest}` : ''}
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-2.5 pt-2 border-t border-slate-700/60 flex items-center justify-between text-[11px] text-slate-400">
+                  <span className="truncate">👤 {m.salesperson}</span>
+                  <span className="text-teal-400 hover:text-teal-300 font-medium">
+                    {m.meetingType} &rarr;
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Daily Activity Tracker: Per Day Visits & Payments Live Ledger */}

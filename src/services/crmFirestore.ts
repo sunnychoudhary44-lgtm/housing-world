@@ -21,6 +21,7 @@ import {
   TokenAgreement,
   Deal,
   CrmTask,
+  CrmMeeting,
 } from '../types';
 
 // Helper to remove undefined values before sending to Firestore
@@ -745,6 +746,69 @@ export async function deleteTaskFromCloud(taskId: string): Promise<void> {
   const taskRef = doc(db, TASKS_COLLECTION, taskId);
   await deleteDoc(taskRef);
 }
+
+const MEETINGS_COLLECTION = 'meetings';
+
+/**
+ * Subscribe to real-time updates for Meetings.
+ */
+export function subscribeToMeetings(
+  onData: (meetings: CrmMeeting[]) => void,
+  onError?: (error: Error) => void
+) {
+  const ref = collection(db, MEETINGS_COLLECTION);
+  return onSnapshot(
+    ref,
+    (snapshot) => {
+      const records: CrmMeeting[] = [];
+      snapshot.forEach((docSnap) => {
+        records.push(docSnap.data() as CrmMeeting);
+      });
+      records.sort((a, b) => {
+        const dateA = `${a.meetingDate}T${a.startTime || '00:00'}`;
+        const dateB = `${b.meetingDate}T${b.startTime || '00:00'}`;
+        return new Date(dateA).getTime() - new Date(dateB).getTime();
+      });
+      onData(records);
+    },
+    (err) => {
+      console.error('Error listening to meetings:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+export async function saveMeetingToCloud(meeting: CrmMeeting): Promise<void> {
+  const meetingRef = doc(db, MEETINGS_COLLECTION, meeting.id);
+  await setDoc(meetingRef, cleanObject(meeting), { merge: true });
+}
+
+export async function deleteMeetingFromCloud(meetingId: string): Promise<void> {
+  const meetingRef = doc(db, MEETINGS_COLLECTION, meetingId);
+  await deleteDoc(meetingRef);
+}
+
+export async function seedMeetingsIfEmpty(initialMeetings: CrmMeeting[]): Promise<boolean> {
+  try {
+    const ref = collection(db, MEETINGS_COLLECTION);
+    const existingSnap = await getDocs(ref);
+    if (existingSnap.empty && initialMeetings.length > 0) {
+      console.log('Seeding initial meetings to Firestore...');
+      const batch = writeBatch(db);
+      initialMeetings.forEach((m) => {
+        const docRef = doc(db, MEETINGS_COLLECTION, m.id);
+        batch.set(docRef, cleanObject(m));
+      });
+      await batch.commit();
+      console.log('Initial meetings seeded to Firestore.');
+      return true;
+    }
+  } catch (err) {
+    console.error('Error seeding meetings:', err);
+  }
+  return false;
+}
+
 
 
 
