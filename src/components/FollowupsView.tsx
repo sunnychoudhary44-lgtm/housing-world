@@ -304,7 +304,7 @@ export const FollowupsView: React.FC<FollowupsViewProps> = ({
                             onClick={() =>
                               openWhatsApp(
                                 l.mobile,
-                                `नमस्ते ${l.name} जी, Housing Worlds से ${l.salesperson || 'टीम'}। आज हमारे फॉलो-अप के अनुसार आपसे चर्चा करनी थी।`
+                                `Hello ${l.name}, this is ${l.salesperson || 'the team'} from Housing Worlds. Reaching out regarding our scheduled follow-up today.`
                               )
                             }
                             className="px-2.5 py-1 text-xs font-semibold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 border border-emerald-300 rounded-lg transition-colors cursor-pointer flex items-center gap-1"

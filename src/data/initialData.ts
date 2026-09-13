@@ -219,30 +219,30 @@ export const WHATSAPP_TEMPLATES: WhatsAppTemplate[] = [
   {
     id: 'intro',
     title: 'Introductory Greeting',
-    labelHindi: 'शुरुआती परिचय और ब्रोशर',
+    subtitle: 'Project Introduction & Brochure',
     message:
-      'नमस्ते {name} जी,\n\nमैं Housing Worlds से {salesperson} बोल रहा हूँ। आपके द्वारा {project} प्रोजेक्ट में प्लॉट के बारे में जानकारी चाही गई थी।\n\nहमारे पास 50 गज से 200 गज तक के प्राइम लोकेशन प्लॉट्स उपलब्ध हैं, जिसमें 30 फीट चौड़ी सड़कें, बिजली-पानी और तुरंत रजिस्ट्री-दाखिल खारिज की सुविधा है।\n\nक्या मैं आपको प्रोजेक्ट का ब्रोशर और लोकेशन शेयर करूँ?',
+      'Hello {name},\n\nThis is {salesperson} from Housing Worlds. Thank you for your interest in our {project} property.\n\nWe offer prime residential plots and premium inventory ranging from 50 sq.yd to 200 sq.yd with 30ft wide roads, water & electricity connections, and immediate registry/mutation.\n\nWould you like me to share the project layout, brochure, and Google location?',
   },
   {
     id: 'site_visit',
     title: 'Site Visit Invitation',
-    labelHindi: 'साइट विज़िट का निमंत्रण (मुफ्त पिक-अप)',
+    subtitle: 'Complimentary Visit & Cab Pickup',
     message:
-      'नमस्ते {name} जी,\n\nHousing Worlds की ओर से सादर प्रणाम। आपके लिए {project} में चुनिंदा प्राइम प्लॉट्स (जैसे {size}) होल्ड किए गए हैं।\n\nकल या परसों में हम आपके लिए फ्री साइट विज़िट और गाड़ी की सुविधा कर रहे हैं। क्या आप कल सुबह 11:00 बजे या दोपहर 3:00 बजे उपलब्ध हैं?',
+      'Dear {name},\n\nGreetings from Housing Worlds! We have held prime inventory options ({size}) in {project} for you.\n\nWe are organizing complimentary site visits with dedicated cab pickup. Would tomorrow at 11:00 AM or 3:00 PM work for you?',
   },
   {
     id: 'followup_reminder',
     title: 'Follow-up Check-in',
-    labelHindi: 'फॉलो-अप और जानकारी अपडेट',
+    subtitle: 'Project Updates & Consultation',
     message:
-      'नमस्ते {name} जी,\n\nउम्मीद है आप सकुशल होंगे। हमारी पिछली बातचीत के संदर्भ में {project} के प्लॉट्स के बारे में अपडेट देना था। सीमित प्लॉट्स शेष हैं।\n\nयदि आपके कोई सवाल या बजट संबंधी चर्चा हो तो कृपया बताएं, हम बेस्ट डील दिलाएंगे।',
+      'Dear {name},\n\nHope you are having a wonderful day! Following up regarding our recent discussion about {project}. A limited number of prime corner and park-facing units are currently available.\n\nPlease let me know if you have any questions on pricing, payment plans, or site visits. I would be glad to assist you.',
   },
   {
     id: 'booking_offer',
     title: 'Special Token & Booking Deal',
-    labelHindi: 'सीमित ऑफर और बुकिंग डिस्काउंट',
+    subtitle: 'Exclusive Booking Offer & Easy Installments',
     message:
-      'नमस्ते {name} जी,\n\nHousing Worlds आपके लिए लेकर आया है {project} में खास डिस्काउंट ऑफर! सिर्फ ₹21,000/₹51,000 टोकन देकर आप अपना मनपसंद प्लॉट बुक करा सकते हैं, बाकी आसान किस्तों में।\n\nकृपया आज ही संपर्क करें ताकि बेस्ट कॉर्नर या फ्रंट प्लॉट मिल सके।\n\nधन्यवाद,\n{salesperson} - Housing Worlds',
+      'Hello {name},\n\nHousing Worlds brings an exclusive limited-period booking offer for {project}! Secure your preferred plot with a token of just ₹21,000 / ₹51,000, with balance in easy flexible installments.\n\nContact us today to lock in your preferred plot before prices revise.\n\nWarm regards,\n{salesperson} - Housing Worlds',
   },
 ];
 

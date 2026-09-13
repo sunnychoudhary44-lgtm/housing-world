@@ -417,7 +417,7 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                             onClick={() =>
                               openWhatsApp(
                                 l.mobile,
-                                `नमस्ते ${l.name} जी, Housing Worlds से ${l.salesperson || 'टीम'}। ${l.project ? `प्रोजेक्ट ${l.project}` : ''} के संदर्भ में संपर्क किया।`
+                                `Hello ${l.name}, this is ${l.salesperson || 'the team'} from Housing Worlds. Reaching out regarding ${l.project ? `project ${l.project}` : 'your property inquiry'}.`
                               )
                             }
                             className="p-1.5 text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors border border-emerald-200"
@@ -475,9 +475,9 @@ export const LeadsView: React.FC<LeadsViewProps> = ({
                       <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-3">
                         <Plus className="w-6 h-6" />
                       </div>
-                      <p className="text-base font-bold text-slate-800">डेटाबेस तैयार है (Ready for Use)</p>
+                      <p className="text-base font-bold text-slate-800">Database Ready</p>
                       <p className="text-xs text-slate-500 mt-1 mb-4">
-                        अभी कोई लीड नहीं है। अपनी पहली लीड मैन्युअली जोड़ें या Excel शीट से बल्क में इम्पोर्ट करें।
+                        No leads found. Add your first lead manually or import bulk leads from an Excel sheet.
                       </p>
                       <div className="flex items-center gap-2">
                         <button

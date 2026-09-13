@@ -596,7 +596,7 @@ export const CommunicationHubView: React.FC<CommunicationHubViewProps> = ({
                   >
                     <div className="font-bold text-xs text-slate-900">{tpl.title}</div>
                     <div className="text-[11px] text-emerald-700 font-medium mt-0.5">
-                      {tpl.labelHindi}
+                      {tpl.subtitle || tpl.labelHindi}
                     </div>
                     <div className="text-[11px] text-slate-500 line-clamp-2 mt-1">
                       {tpl.message}

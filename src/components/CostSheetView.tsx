@@ -236,7 +236,7 @@ _Offer valid for 7 days subject to unit availability._`;
               Real Estate Cost Sheets & Quotations
             </h1>
             <p className="text-slate-300 text-sm mt-1.5 max-w-2xl">
-              भारतीय रियल एस्टेट के अनुसार BSP, PLC, कार पार्किंग, EDC/IDC, GST और स्टैम्प ड्यूटी जोड़कर instant official quotation तैयार करें और सीधे WhatsApp पर शेयर करें।
+              Calculate instant official quotations with BSP, PLC, Car Parking, EDC/IDC, GST, and Stamp Duty according to Indian real estate norms, and share directly via WhatsApp.
             </p>
           </div>
 
@@ -273,9 +273,9 @@ _Offer valid for 7 days subject to unit availability._`;
       {filteredSheets.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center border border-dashed border-slate-300">
           <Calculator className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-slate-800">कोई कॉस्ट शीट नहीं मिली</h3>
+          <h3 className="text-base font-semibold text-slate-800">No Cost Sheets Found</h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-            अभी तक कोई क्वोटेशन जनरेट नहीं किया गया है। नया रियल एस्टेट कॉस्ट शीट तैयार करने के लिए ऊपर दिए बटन पर क्लिक करें।
+            No quotations have been generated yet. Click the button above to prepare a new real estate cost sheet.
           </p>
           <button
             type="button"
@@ -401,7 +401,7 @@ _Offer valid for 7 days subject to unit availability._`;
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Housing World Property Cost Sheet Calculator</h3>
                 <p className="text-xs text-slate-500">
-                  प्रोजेक्ट, यूनिट साइज़ और चार्ज कॉन्फ़िगर करें — ऑटोमैटिक ब्रेकडाउन और क्वोटेशन
+                  Configure project, unit size, and charges for automatic breakdown and quotation
                 </p>
               </div>
             </div>

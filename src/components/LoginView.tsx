@@ -42,7 +42,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
   registeredUsers = [],
   onRegisterUser,
 }) => {
-  // Mode: 'login' (लॉगिन) or 'register' (नया ID & पासवर्ड बनाएं)
+  // Mode: 'login' or 'register'
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
 
   // Login Form States
@@ -112,12 +112,12 @@ export const LoginView: React.FC<LoginViewProps> = ({
     const cleanPass = password.trim();
 
     if (!cleanId) {
-      setErrorMsg('कृपया अपनी यूज़र ID, यूजरनेम या मोबाइल नंबर दर्ज करें।');
+      setErrorMsg('Please enter your User ID, username, or mobile number.');
       return;
     }
 
     if (!cleanPass) {
-      setErrorMsg('कृपया अपना पासवर्ड दर्ज करें।');
+      setErrorMsg('Please enter your password.');
       return;
     }
 
@@ -172,7 +172,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
           return;
         } else {
           setIsLoggingIn(false);
-          setErrorMsg('गलत पासवर्ड! कृपया सही पासवर्ड दर्ज करें।');
+          setErrorMsg('Incorrect password! Please enter the correct password.');
           return;
         }
       }
@@ -180,12 +180,12 @@ export const LoginView: React.FC<LoginViewProps> = ({
       // If user not found at all
       setIsLoggingIn(false);
       setErrorMsg(
-        'यह यूज़र ID पंजीकृत नहीं है। कृपया सही ID दर्ज करें या ऊपर "नया ID व पासवर्ड बनाएं" पर क्लिक करके नया अकाउंट बनाएं।'
+        'This User ID is not registered. Please enter a valid ID or click "Create New Account" above.'
       );
     } catch (err) {
       console.error('Login error', err);
       setIsLoggingIn(false);
-      setErrorMsg('लॉगिन करने में त्रुटि आई। कृपया पुनः प्रयास करें।');
+      setErrorMsg('Error signing in. Please try again.');
     }
   };
 
@@ -202,22 +202,22 @@ export const LoginView: React.FC<LoginViewProps> = ({
     const cleanDesignation = regDesignation.trim();
 
     if (!cleanName) {
-      setErrorMsg('कृपया अपना पूरा नाम दर्ज करें (Enter Full Name)।');
+      setErrorMsg('Please enter your full name.');
       return;
     }
 
     if (cleanMobile.length !== 10) {
-      setErrorMsg('कृपया 10-अंकों का मान्य मोबाइल नंबर दर्ज करें (Enter 10-digit mobile)।');
+      setErrorMsg('Please enter a valid 10-digit mobile number.');
       return;
     }
 
     if (!cleanUsername || cleanUsername.length < 3) {
-      setErrorMsg('यूज़र ID कम से कम 3 अक्षरों की होनी चाहिए (Username must be at least 3 characters)।');
+      setErrorMsg('Username must be at least 3 characters.');
       return;
     }
 
     if (!cleanPassword || cleanPassword.length < 4) {
-      setErrorMsg('पासवर्ड कम से कम 4 अक्षरों का होना चाहिए (Password must be at least 4 characters)।');
+      setErrorMsg('Password must be at least 4 characters.');
       return;
     }
 
@@ -235,7 +235,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
       if (existingUser) {
         setIsRegistering(false);
         setErrorMsg(
-          `यूज़र ID "${cleanUsername}" या मोबाइल "${cleanMobile}" पहले से पंजीकृत है। कृपया अन्य ID चुनें या लॉगिन करें।`
+          `User ID "${cleanUsername}" or mobile "${cleanMobile}" is already registered. Please choose another ID or sign in.`
         );
         return;
       }
@@ -269,7 +269,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
         localStorage.setItem('hw_crm_remembered_id', cleanUsername);
       } catch (_) {}
 
-      setSuccessMsg(`🎉 बधाई हो ${cleanName}! आपकी यूज़र ID "${cleanUsername}" सफलतापूर्वक बन गई है।`);
+      setSuccessMsg(`🎉 Congratulations ${cleanName}! Your User ID "${cleanUsername}" has been created successfully.`);
       setIsRegistering(false);
 
       // Auto login after 600ms
@@ -279,7 +279,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
     } catch (err) {
       console.error('Registration failed:', err);
       setIsRegistering(false);
-      setErrorMsg('अकाउंट बनाने में त्रुटि आई। कृपया इंटरनेट कनेक्शन जांचें और पुनः प्रयास करें।');
+      setErrorMsg('Error creating account. Please check your internet connection and try again.');
     }
   };
 
@@ -304,7 +304,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
           </p>
         </div>
 
-        {/* Primary Tabs: Login vs Register (नया ID & पासवर्ड बनाएं) */}
+        {/* Primary Tabs: Login vs Register */}
         <div className="grid grid-cols-2 p-1.5 bg-slate-950/90 border-b border-slate-800 gap-1">
           <button
             id="tab-login"
@@ -321,7 +321,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             }`}
           >
             <KeyRound className="w-3.5 h-3.5" />
-            <span>लॉगिन करें (Sign In)</span>
+            <span>Sign In</span>
           </button>
 
           <button
@@ -339,7 +339,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
             }`}
           >
             <UserPlus className="w-3.5 h-3.5" />
-            <span>नया ID बनाएं (Register)</span>
+            <span>Register New Account</span>
           </button>
         </div>
 
@@ -360,12 +360,12 @@ export const LoginView: React.FC<LoginViewProps> = ({
             </div>
           )}
 
-          {/* TAB 1: LOGIN (लॉगिन करें) */}
+          {/* TAB 1: LOGIN */}
           {activeTab === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
-                  <span>यूज़र ID / यूजरनेम / मोबाइल नंबर</span>
+                  <span>User ID / Username / Mobile</span>
                   <span className="text-[11px] text-slate-500">User ID</span>
                 </label>
                 <div className="relative">
@@ -379,7 +379,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                       setLoginId(e.target.value);
                       setErrorMsg('');
                     }}
-                    placeholder="उदा. admin या आपका यूजरनेम"
+                    placeholder="e.g. admin or your username"
                     className="w-full pl-10 pr-3 py-2.5 bg-slate-950 border border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                   />
                 </div>
@@ -387,7 +387,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center justify-between">
-                  <span>पासवर्ड (Password)</span>
+                  <span>Password</span>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -408,7 +408,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                       setPassword(e.target.value);
                       setErrorMsg('');
                     }}
-                    placeholder="अपना पासवर्ड दर्ज करें"
+                    placeholder="Enter your password"
                     className="w-full pl-10 pr-10 py-2.5 bg-slate-950 border border-slate-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-xl text-white text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                   />
                 </div>
@@ -433,7 +433,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                   }}
                   className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer underline"
                 >
-                  नया ID बनाएं →
+                  Create Account →
                 </button>
               </div>
 
@@ -444,31 +444,31 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 className="w-full py-3 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98 disabled:opacity-50"
               >
                 {isLoggingIn ? (
-                  <span>सत्यापित हो रहा है...</span>
+                  <span>Verifying...</span>
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>लॉगिन करें (Sign In)</span>
+                    <span>Sign In</span>
                   </>
                 )}
               </button>
             </form>
           )}
 
-          {/* TAB 2: REGISTER (यूज़र खुद अपना ID और पासवर्ड जनरेट करें) */}
+          {/* TAB 2: REGISTER */}
           {activeTab === 'register' && (
             <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
               <div className="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-800/40 text-emerald-300 text-xs flex items-start gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                 <span>
-                  <strong>नया यूज़र रजिस्ट्रेशन:</strong> अपना नाम, मनपसंद ID और पासवर्ड सेट करें। यह तुरंत क्लाउड डेटाबेस में सुरक्षित सेव हो जाएगा।
+                  <strong>New User Registration:</strong> Enter your name, desired username, and password. Your profile will be saved securely to the database.
                 </span>
               </div>
 
               {/* Full Name */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  पूरा नाम (Full Name) *
+                  Full Name *
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -478,7 +478,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     required
                     value={regName}
                     onChange={(e) => setRegName(e.target.value)}
-                    placeholder="उदा. अमित शर्मा (Amit Sharma)"
+                    placeholder="e.g. Amit Sharma"
                     className="w-full pl-10 pr-3 py-2 bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white text-xs sm:text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                   />
                 </div>
@@ -487,7 +487,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
               {/* Mobile Number */}
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  मोबाइल नंबर (Mobile No.) *
+                  Mobile Number *
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -498,7 +498,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     maxLength={10}
                     value={regMobile}
                     onChange={(e) => setRegMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="10-अंकों का मोबाइल नंबर"
+                    placeholder="10-digit mobile number"
                     className="w-full pl-10 pr-3 py-2 bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white text-xs sm:text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                   />
                 </div>
@@ -509,7 +509,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 {/* Username / ID */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    यूज़र ID चुनें (Username) *
+                    Username / ID *
                   </label>
                   <div className="relative">
                     <KeyRound className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -519,7 +519,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                       required
                       value={regUsername}
                       onChange={(e) => setRegUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
-                      placeholder="उदा. amit, amit12"
+                      placeholder="e.g. amit, amit12"
                       className="w-full pl-8 pr-2.5 py-2 bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white text-xs sm:text-sm outline-none transition-all placeholder:text-slate-600 font-mono font-medium"
                     />
                   </div>
@@ -529,7 +529,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="block text-xs font-semibold text-slate-300">
-                      पासवर्ड बनाएं *
+                      Create Password *
                     </label>
                     <button
                       type="button"
@@ -547,7 +547,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                       required
                       value={regPassword}
                       onChange={(e) => setRegPassword(e.target.value)}
-                      placeholder="कम से कम 4 अक्षर"
+                      placeholder="At least 4 characters"
                       className="w-full pl-8 pr-2.5 py-2 bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white text-xs sm:text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                     />
                   </div>
@@ -558,7 +558,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    पद / पोस्ट (Designation)
+                    Designation
                   </label>
                   <div className="relative">
                     <Briefcase className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -567,7 +567,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                       type="text"
                       value={regDesignation}
                       onChange={(e) => setRegDesignation(e.target.value)}
-                      placeholder="उदा. Sales Executive"
+                      placeholder="e.g. Sales Executive"
                       className="w-full pl-8 pr-2.5 py-2 bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white text-xs sm:text-sm outline-none transition-all placeholder:text-slate-600 font-medium"
                     />
                   </div>
@@ -575,7 +575,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    खाता रोल (Role)
+                    Account Role
                   </label>
                   <select
                     id="reg-input-role"
@@ -583,8 +583,8 @@ export const LoginView: React.FC<LoginViewProps> = ({
                     onChange={(e) => setRegRole(e.target.value as UserRole)}
                     className="w-full px-3 py-2 bg-slate-950 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white text-xs sm:text-sm outline-none transition-all cursor-pointer font-medium"
                   >
-                    <option value="user">👤 Sales User (सेल्स टीम)</option>
-                    <option value="admin">👑 Company Admin (एडमिन)</option>
+                    <option value="user">👤 Sales User (Team Member)</option>
+                    <option value="admin">👑 Company Admin (Full Access)</option>
                   </select>
                 </div>
               </div>
@@ -597,11 +597,11 @@ export const LoginView: React.FC<LoginViewProps> = ({
                   className="w-full py-3 rounded-xl font-bold text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-98 disabled:opacity-50"
                 >
                   {isRegistering ? (
-                    <span>आईडी जनरेट हो रही है...</span>
+                    <span>Generating Account...</span>
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4 text-emerald-200" />
-                      <span>आईडी और पासवर्ड बनाएं (Generate Account)</span>
+                      <span>Create Account</span>
                       <ArrowRight className="w-4 h-4 ml-1" />
                     </>
                   )}
@@ -609,7 +609,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
               </div>
 
               <p className="text-center text-[11px] text-slate-500 pt-1">
-                पहले से खाता है?{' '}
+                Already have an account?{' '}
                 <button
                   type="button"
                   onClick={() => {
@@ -618,7 +618,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                   }}
                   className="text-blue-400 hover:underline font-semibold cursor-pointer"
                 >
-                  यहां लॉगिन करें
+                  Sign In Here
                 </button>
               </p>
             </form>
@@ -633,7 +633,7 @@ export const LoginView: React.FC<LoginViewProps> = ({
                 </div>
                 <div>
                   <div className="font-bold text-slate-200 text-[11px]">
-                    Master Admin (डिफ़ॉल्ट एडमिन):
+                    Master Admin (Default Admin):
                   </div>
                   <div className="text-[10px] text-slate-400 font-mono">
                     ID: <span className="text-amber-300">admin</span> • Pass:{' '}

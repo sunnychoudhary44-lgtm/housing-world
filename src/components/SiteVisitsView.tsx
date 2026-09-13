@@ -149,7 +149,7 @@ export const SiteVisitsView: React.FC<SiteVisitsViewProps> = ({
     const project = projects.find((p) => p.id === selectedProjectId);
 
     if (!lead || !project || !scheduledDateTime) {
-      alert('कृपया क्लाइंट, प्रोजेक्ट और विज़िट समय चुनें।');
+      alert('Please select client, project, and visit time.');
       return;
     }
 
@@ -225,9 +225,9 @@ export const SiteVisitsView: React.FC<SiteVisitsViewProps> = ({
 
     const text = `🏡 *SITE VISIT PASS — ${visit.projectName.toUpperCase()}*
 ━━━━━━━━━━━━━━━━━━━━
-नमस्ते *${visit.leadName}* जी,
+Hello *${visit.leadName}*,
 
-आपके प्रोजेक्ट विज़िट का डिजिटल पास तैयार है:
+Your digital pass for the upcoming project site visit is ready:
 
 🏷️ *Pass Code:* ${visit.passCode || 'SV-VERIFIED'}
 🏢 *Project:* ${visit.projectName} (${visit.developerName || 'Builder'})
@@ -236,9 +236,9 @@ export const SiteVisitsView: React.FC<SiteVisitsViewProps> = ({
 ${visit.pickupRequired ? `🚗 *Pickup Details:* ${visit.cabAssigned || 'Cab Provided'} (${visit.pickupAddress || 'Your Location'})` : '🚗 *Mode:* Self Visit'}
 
 📍 *Project Location / Gate Entry:*
-कृपया साइट गेट पर यह पास कोड दिखाएं। हमारी टीम आपका स्वागत करने के लिए तैयार रहेगी!
+Please present this pass code at the site entrance gate. Our team looks forward to welcoming you!
 
-धन्यवाद,
+Warm regards,
 *Housing World Sales Desk*`;
 
     const cleanMobile = visit.leadMobile.replace(/\D/g, '');
@@ -261,7 +261,7 @@ ${visit.pickupRequired ? `🚗 *Pickup Details:* ${visit.cabAssigned || 'Cab Pro
               Site Visits & Digital Entry Passes
             </h1>
             <p className="text-slate-300 text-sm mt-1.5 max-w-2xl">
-              रियल एस्टेट लीड्स के लिए साइट विज़िट शेड्यूल करें, डिजिटल पास (QR/Code) जनरेट करें, पिकअप कैब ट्रैक करें और विज़िट के बाद तुरंत क्लाइंट फीडबैक दर्ज करें।
+              Schedule site visits for real estate leads, generate digital entry passes, coordinate cab pickups, and record client feedback seamlessly.
             </p>
           </div>
 
@@ -358,9 +358,9 @@ ${visit.pickupRequired ? `🚗 *Pickup Details:* ${visit.cabAssigned || 'Cab Pro
       {filteredVisits.length === 0 ? (
         <div className="bg-white rounded-2xl p-12 text-center border border-dashed border-slate-300">
           <CalendarCheck2 className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <h3 className="text-base font-semibold text-slate-800">कोई साइट विज़िट नहीं मिली</h3>
+          <h3 className="text-base font-semibold text-slate-800">No Site Visits Found</h3>
           <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-            दिए गए फ़िल्टर या खोज के लिए कोई साइट विज़िट दर्ज नहीं है। नई विज़िट शेड्यूल करने के लिए ऊपर दिए गए बटन पर क्लिक करें।
+            No site visits recorded for the selected filter or search. Click the button above to schedule a new visit.
           </p>
           <button
             type="button"
@@ -514,7 +514,7 @@ ${visit.pickupRequired ? `🚗 *Pickup Details:* ${visit.cabAssigned || 'Cab Pro
                       type="button"
                       onClick={() => handleSharePassWhatsApp(visit)}
                       className="text-xs text-emerald-700 hover:text-emerald-800 font-medium px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 transition-colors inline-flex items-center gap-1 border border-emerald-200 cursor-pointer"
-                      title="WhatsApp पर डिजिटल पास भेजें"
+                      title="Send Digital Pass on WhatsApp"
                     >
                       <Share2 className="w-3.5 h-3.5" />
                       <span>WhatsApp</span>
@@ -589,7 +589,7 @@ ${visit.pickupRequired ? `🚗 *Pickup Details:* ${visit.cabAssigned || 'Cab Pro
                   {editingVisit ? 'Edit Site Visit' : 'Schedule Project Site Visit'}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Housing World Lead Pipeline • क्लाइंट के लिए साइट विज़िट बुक करें
+                  Housing World Lead Pipeline • Book site visit for client
                 </p>
               </div>
             </div>
@@ -676,7 +676,7 @@ ${visit.pickupRequired ? `🚗 *Pickup Details:* ${visit.cabAssigned || 'Cab Pro
                   />
                   <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
                     <Car className="w-3.5 h-3.5 text-blue-600" />
-                    कंपनी कैब पिकअप की आवश्यकता है (Cab Facility Required)
+                    Company Cab Pickup Required (Cab Facility)
                   </span>
                 </label>
 

@@ -191,7 +191,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
     savePaymentTargets(editPaymentDraft);
     setGajTargets(editGajDraft);
     setPaymentTargets(editPaymentDraft);
-    setSaveSuccessMsg('टारगेट सफलतापूर्वक अपडेट हो गए! (Targets saved successfully)');
+    setSaveSuccessMsg('Targets saved successfully!');
     setTimeout(() => {
       setIsEditModalOpen(false);
       setSaveSuccessMsg('');
@@ -209,19 +209,19 @@ export const TeamView: React.FC<TeamViewProps> = ({
     const cleanPassword = newMemberPassword.trim();
 
     if (!cleanName) {
-      setAddErrorMsg('कृपया सदस्य का पूरा नाम दर्ज करें।');
+      setAddErrorMsg('Please enter the full name of the member.');
       return;
     }
     if (cleanMobile.length !== 10) {
-      setAddErrorMsg('कृपया 10-अंकों का मान्य मोबाइल नंबर दर्ज करें।');
+      setAddErrorMsg('Please enter a valid 10-digit mobile number.');
       return;
     }
     if (!cleanUsername || cleanUsername.length < 3) {
-      setAddErrorMsg('यूज़र ID कम से कम 3 अक्षरों की होनी चाहिए।');
+      setAddErrorMsg('User ID must be at least 3 characters long.');
       return;
     }
     if (!cleanPassword || cleanPassword.length < 4) {
-      setAddErrorMsg('पासवर्ड कम से कम 4 अक्षरों का होना चाहिए।');
+      setAddErrorMsg('Password must be at least 4 characters long.');
       return;
     }
 
@@ -256,7 +256,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
     } catch (err) {
       console.error('Failed to add user', err);
       setIsAddingUser(false);
-      setAddErrorMsg('सदस्य जोड़ने में त्रुटि आई। कृपया पुनः प्रयास करें।');
+      setAddErrorMsg('Error adding member. Please try again.');
     }
   };
 
@@ -266,15 +266,15 @@ export const TeamView: React.FC<TeamViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
         <div>
           <h2 className="text-lg sm:text-xl font-black text-slate-900 flex items-center gap-2">
-            <span>टीम परफॉर्मेंस व कोटा (Team Quota)</span>
+            <span>Team Performance & Quota</span>
             <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-bold">
               {displayedMembers.length} Active Members
             </span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
             {isAdmin
-              ? 'एरिया टारगेट (Gaj) व पेमेंट रिकवरी (₹) की संयुक्त ट्रैकिंग'
-              : `व्यक्तिगत टारगेट व मासिक रिकवरी प्रगति (${currentUser?.name || 'User'})`}
+              ? 'Consolidated tracking of Area Target (Gaj) & Payment Recovery (₹)'
+              : `Personal target & monthly recovery progress (${currentUser?.name || 'User'})`}
           </p>
         </div>
 
@@ -292,7 +292,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              सभी (All)
+              All
             </button>
             <button
               id="filter-target-payment"
@@ -305,7 +305,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
               }`}
             >
               <IndianRupee className="w-3 h-3" />
-              <span>पेमेंट (₹)</span>
+              <span>Payment (₹)</span>
             </button>
             <button
               id="filter-target-gaj"
@@ -318,7 +318,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
               }`}
             >
               <Target className="w-3 h-3" />
-              <span>एरिया (Gaj)</span>
+              <span>Area (Gaj)</span>
             </button>
           </div>
 
@@ -335,7 +335,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                 className="px-3.5 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <UserPlus className="w-3.5 h-3.5" />
-                <span>+ नया सदस्य (Add Member)</span>
+                <span>+ Add Member</span>
               </button>
 
               <button
@@ -345,7 +345,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                 className="px-3.5 py-1.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <Edit3 className="w-3.5 h-3.5 text-amber-400" />
-                <span>टारगेट सेट करें (Targets)</span>
+                <span>Set Targets</span>
               </button>
             </div>
           )}
@@ -356,7 +356,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-center gap-2">
           <Shield className="w-4 h-4 text-blue-600 shrink-0" />
           <span>
-            यह आपका व्यक्तिगत स्कोरकार्ड है। अन्य टीम मेंबर्स का पेमेंट व टारगेट डेटा केवल कंपनी एडमिन के लिए उपलब्ध है।
+            This is your personal scorecard. Other team members' payment and target data is accessible only to company administrators.
           </span>
         </div>
       )}
@@ -368,10 +368,10 @@ export const TeamView: React.FC<TeamViewProps> = ({
             <Users className="w-7 h-7" />
           </div>
           <h3 className="text-base font-bold text-slate-800 mb-1">
-            अभी कोई टीम सदस्य पंजीकृत नहीं है
+            No team members registered yet
           </h3>
           <p className="text-xs text-slate-500 mb-5 leading-relaxed">
-            पुराने डेमो नाम साफ कर दिए गए हैं। अब कोई भी टीम सदस्य लॉगिन स्क्रीन से <strong>'नया ID व पासवर्ड बनाएं'</strong> पर क्लिक करके तुरंत अपना अकाउंट बना सकता है, या आप नीचे दिए गए बटन से सीधे सदस्य जोड़ सकते हैं।
+            Team members can create their account from the login screen via <strong>'Create New ID & Password'</strong>, or you can add them directly using the button below.
           </p>
           {isAdmin && (
             <button
@@ -383,7 +383,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
               className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 inline-flex items-center gap-2 cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
-              <span>+ पहला टीम सदस्य जोड़ें (Add Member)</span>
+              <span>+ Add First Member</span>
             </button>
           )}
         </div>
@@ -435,8 +435,8 @@ export const TeamView: React.FC<TeamViewProps> = ({
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
                   {isAdmin
-                    ? `संयुक्त मासिक कलेक्शन कोटा (${displayedMembers.length} सदस्य)`
-                    : 'आपकी मासिक पेमेंट व रेवेन्यू रिकवरी का लक्ष्य'}
+                    ? `Combined monthly collection quota (${displayedMembers.length} members)`
+                    : 'Your monthly payment and revenue recovery target'}
                 </p>
               </div>
             )}
@@ -454,7 +454,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                   {formatINR(totalCollectedPayment)}
                 </div>
                 <div className="mt-2 flex items-center justify-between text-xs">
-                  <span className="text-slate-600">टोकन व डाउन पेमेंट</span>
+                  <span className="text-slate-600">Tokens & Down Payments</span>
                   <span className="font-bold text-emerald-700">
                     {overallTeamPaymentAchieved}% Achieved
                   </span>
@@ -489,16 +489,16 @@ export const TeamView: React.FC<TeamViewProps> = ({
                 {isAdmin ? (
                   topPaymentPerformer && topPaymentPerformer.collectedPayment > 0 ? (
                     <>
-                      पेमेंट स्टार: <strong>{formatINR(topPaymentPerformer.collectedPayment)}</strong> (
-                      {topPaymentPerformer.percentPayment}% लक्ष्य)
+                      Payment Star: <strong>{formatINR(topPaymentPerformer.collectedPayment)}</strong> (
+                      {topPaymentPerformer.percentPayment}% of target)
                     </>
                   ) : (
-                    'टारगेट मॉनिटरिंग सक्रिय'
+                    'Target monitoring active'
                   )
                 ) : (
                   <>
                     {teamStats[0]?.bookedGaj || 0} Gaj •{' '}
-                    {formatINR(teamStats[0]?.collectedPayment || 0)} प्राप्त
+                    {formatINR(teamStats[0]?.collectedPayment || 0)} received
                   </>
                 )}
               </p>
@@ -511,17 +511,17 @@ export const TeamView: React.FC<TeamViewProps> = ({
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-blue-600" />
                 <h3 className="font-bold text-slate-900 text-sm sm:text-base">
-                  Executive Quota Scorecard (एरिया व पेमेंट लक्ष्य)
+                  Executive Quota Scorecard (Area & Payment Targets)
                 </h3>
               </div>
               <div className="flex items-center gap-3 text-xs text-slate-500">
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <span>पेमेंट लक्ष्य (₹ Target)</span>
+                  <span>Payment Target (₹)</span>
                 </span>
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-blue-500" />
-                  <span>एरिया लक्ष्य (Gaj Target)</span>
+                  <span>Area Target (Gaj)</span>
                 </span>
               </div>
             </div>
@@ -634,7 +634,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                             {/* Payment Progress */}
                             <div>
                               <div className="flex items-center justify-between text-[10px] font-semibold">
-                                <span className="text-emerald-800">पेमेंट रिकवरी</span>
+                                <span className="text-emerald-800">Payment Recovery</span>
                                 <span className="text-emerald-700">{tm.percentPayment}%</span>
                               </div>
                               <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -648,7 +648,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                             {/* Gaj Progress */}
                             <div>
                               <div className="flex items-center justify-between text-[10px] font-semibold">
-                                <span className="text-blue-700">एरिया प्लॉट</span>
+                                <span className="text-blue-700">Plot Area</span>
                                 <span className="text-blue-600">{tm.percentGaj}%</span>
                               </div>
                               <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
@@ -675,7 +675,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                 <div className="flex items-center gap-2">
                   <Shield className="w-4 h-4 text-indigo-600" />
                   <h3 className="font-bold text-slate-900 text-sm">
-                    पंजीकृत यूज़र अकाउंट्स (Registered Accounts)
+                    Registered Accounts
                   </h3>
                 </div>
                 <span className="text-xs text-slate-500 font-medium">
@@ -726,7 +726,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                         onClick={() => {
                           if (
                             window.confirm(
-                              `क्या आप सदस्य "${u.name}" (ID: ${u.username || u.mobile}) का खाता हटाना चाहते हैं?`
+                              `Are you sure you want to remove account for "${u.name}" (ID: ${u.username || u.mobile})?`
                             )
                           ) {
                             onDeleteUser(u.id);
@@ -756,10 +756,10 @@ export const TeamView: React.FC<TeamViewProps> = ({
                 <Edit3 className="w-5 h-5 text-amber-400" />
                 <div>
                   <h3 className="font-bold text-sm sm:text-base">
-                    मासिक एरिया व पेमेंट टारगेट सेट करें
+                    Set Monthly Area & Payment Targets
                   </h3>
                   <p className="text-xs text-slate-400">
-                    प्रत्येक सदस्य के लिए गज (Area) और पेमेंट (₹) कोटा सेट करें
+                    Configure Gaj (Area) and Payment (₹) quotas for each team member
                   </p>
                 </div>
               </div>
@@ -807,7 +807,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                         {/* Area Target in Gaj */}
                         <div>
                           <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                            एरिया टारगेट (Area Target in Gaj)
+                            Area Target (in Gaj)
                           </label>
                           <div className="flex items-center gap-1.5">
                             <input
@@ -831,7 +831,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                         {/* Payment Target in Rupees */}
                         <div>
                           <label className="block text-[11px] font-semibold text-emerald-800 mb-1 flex items-center justify-between">
-                            <span>पेमेंट टारगेट (Payment Target ₹)</span>
+                            <span>Payment Target (₹)</span>
                             <span className="text-[10px] text-slate-500">
                               {formatINR(currPayment)}
                             </span>
@@ -885,7 +885,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                   onClick={() => setIsEditModalOpen(false)}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
                 >
-                  रद्द करें (Cancel)
+                  Cancel
                 </button>
                 <button
                   id="btn-save-targets-submit"
@@ -893,7 +893,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                   className="px-5 py-2 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-1.5"
                 >
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>टारगेट सुरक्षित करें (Save Targets)</span>
+                  <span>Save Targets</span>
                 </button>
               </div>
             </form>
@@ -910,10 +910,10 @@ export const TeamView: React.FC<TeamViewProps> = ({
                 <UserPlus className="w-5 h-5 text-emerald-400" />
                 <div>
                   <h3 className="font-bold text-sm sm:text-base">
-                    नया टीम सदस्य जोड़ें (Add Team Member)
+                    Add Team Member
                   </h3>
                   <p className="text-xs text-slate-400">
-                    सदस्य के लिए नाम, मोबाइल, ID और पासवर्ड बनाएं
+                    Create name, mobile, username, and password for member
                   </p>
                 </div>
               </div>
@@ -935,21 +935,21 @@ export const TeamView: React.FC<TeamViewProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  पूरा नाम (Full Name) *
+                  Full Name *
                 </label>
                 <input
                   type="text"
                   required
                   value={newMemberName}
                   onChange={(e) => setNewMemberName(e.target.value)}
-                  placeholder="उदा. राहुल वर्मा"
+                  placeholder="e.g. Rahul Verma"
                   className="w-full px-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 font-medium"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  मोबाइल नंबर (Mobile No.) *
+                  Mobile Number *
                 </label>
                 <input
                   type="tel"
@@ -957,7 +957,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                   maxLength={10}
                   value={newMemberMobile}
                   onChange={(e) => setNewMemberMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                  placeholder="10-अंकों का मोबाइल नंबर"
+                  placeholder="10-digit mobile number"
                   className="w-full px-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 font-medium"
                 />
               </div>
@@ -965,28 +965,28 @@ export const TeamView: React.FC<TeamViewProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    यूज़र ID (Username) *
+                    Username / ID *
                   </label>
                   <input
                     type="text"
                     required
                     value={newMemberUsername}
                     onChange={(e) => setNewMemberUsername(e.target.value.toLowerCase().replace(/\s+/g, ''))}
-                    placeholder="उदा. rahul12"
+                    placeholder="e.g. rahul12"
                     className="w-full px-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 font-mono font-medium"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    पासवर्ड (Password) *
+                    Password *
                   </label>
                   <input
                     type="text"
                     required
                     value={newMemberPassword}
                     onChange={(e) => setNewMemberPassword(e.target.value)}
-                    placeholder="कम से कम 4 अक्षर"
+                    placeholder="At least 4 characters"
                     className="w-full px-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 font-medium"
                   />
                 </div>
@@ -995,20 +995,20 @@ export const TeamView: React.FC<TeamViewProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    पद (Designation)
+                    Designation
                   </label>
                   <input
                     type="text"
                     value={newMemberDesignation}
                     onChange={(e) => setNewMemberDesignation(e.target.value)}
-                    placeholder="उदा. Sales Executive"
+                    placeholder="e.g. Sales Executive"
                     className="w-full px-3 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 font-medium"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    रोल (Role)
+                    Role
                   </label>
                   <select
                     value={newMemberRole}
@@ -1027,7 +1027,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                   onClick={() => setIsAddModalOpen(false)}
                   className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
                 >
-                  रद्द करें (Cancel)
+                  Cancel
                 </button>
                 <button
                   type="submit"
@@ -1035,7 +1035,7 @@ export const TeamView: React.FC<TeamViewProps> = ({
                   className="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
                 >
                   <UserPlus className="w-4 h-4" />
-                  <span>{isAddingUser ? 'सेव हो रहा है...' : 'सदस्य जोड़ें (Save)'}</span>
+                  <span>{isAddingUser ? 'Saving...' : 'Add Member'}</span>
                 </button>
               </div>
             </form>

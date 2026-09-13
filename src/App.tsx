@@ -572,7 +572,7 @@ export default function App() {
     } catch (err) {
       console.error('Failed to save auth to localStorage', err);
     }
-    showToast(`लॉगिन सफल: ${user.name} (${user.role === 'admin' ? '👑 Admin' : '👤 User'})`);
+    showToast(`Logged in successfully: ${user.name} (${user.role === 'admin' ? '👑 Admin' : '👤 User'})`);
   };
 
   const handleLogout = () => {
@@ -582,7 +582,7 @@ export default function App() {
     } catch (err) {
       console.error('Failed to remove auth', err);
     }
-    showToast('सफलतापूर्वक लॉगआउट हो गया।');
+    showToast('Logged out successfully.');
   };
 
   const isAdmin = currentUser?.role === 'admin';
@@ -736,7 +736,7 @@ export default function App() {
       console.error('Cloud bulk save failed for imported leads:', err)
     );
 
-    showToast(`${newLeadsList.length} लीड्स एक्सेल शीट से सफलतापूर्वक इम्पोर्ट हुईं!`);
+    showToast(`${newLeadsList.length} leads imported successfully from Excel!`);
     setLeadFormInitialMode('manual');
     setActivePage('leads');
   };
@@ -911,10 +911,10 @@ export default function App() {
       localStorage.removeItem(STORAGE_KEY);
       localStorage.removeItem(CALLS_STORAGE_KEY);
       await clearAllDataFromCloud();
-      showToast('डेटाबेस पूरी तरह साफ़ हो गया है — अब आप अपनी असली लीड्स जोड़ सकते हैं!');
+      showToast('Database cleared successfully — you can now add your real leads!');
     } catch (err) {
       console.error('Failed to clear database', err);
-      showToast('डेटा साफ़ करने में त्रुटि आई। कृपया इंटरनेट कनेक्शन जांचें।');
+      showToast('Error clearing database. Please check your internet connection.');
     }
   };
 
@@ -923,7 +923,7 @@ export default function App() {
     setLeads(SAMPLE_DEMO_LEADS);
     setCalls(SAMPLE_DEMO_CALLS);
     resetFirestoreWithDemo(SAMPLE_DEMO_LEADS, SAMPLE_DEMO_CALLS).catch(console.error);
-    showToast('सैंपल डेमो डेटा लोड और सिंक हो गया है');
+    showToast('Sample demo data loaded and synced.');
   };
 
   // Real Estate: Developers handlers
@@ -1111,13 +1111,13 @@ export default function App() {
       return [fullRecord, ...prev];
     });
     saveTokenAgreementToCloud(fullRecord).catch(console.error);
-    showToast(`टोकन / एग्रीमेंट रसीद "${fullRecord.receiptNumber}" सुरक्षित की गई!`);
+    showToast(`Token / agreement receipt "${fullRecord.receiptNumber}" saved successfully!`);
   };
 
   const handleDeleteTokenAgreement = (id: string) => {
     setTokensAgreements((prev) => prev.filter((r) => r.id !== id));
     deleteTokenAgreementFromCloud(id).catch(console.error);
-    showToast('टोकन / एग्रीमेंट रिकॉर्ड हटा दिया गया।');
+    showToast('Token / agreement record deleted.');
   };
 
   // CRM 5 Pillars: Deals handlers
@@ -1298,21 +1298,20 @@ export default function App() {
             <>
               <Crown className="w-4 h-4 text-amber-600 shrink-0" />
               <span>
-                <strong>👑 एडमिन मोड (Director Access):</strong> आप{' '}
-                <strong className="text-amber-900">{currentUser.name}</strong> के रूप में लॉग इन
-                हैं। पूरी कंपनी की कुल <strong>{leads.length} लीड्स</strong> और{' '}
-                <strong>{calls.length} कॉल्स</strong> आपको दिखाई दे रही हैं।
+                <strong>👑 Admin Mode (Director Access):</strong> Logged in as{' '}
+                <strong className="text-amber-900">{currentUser.name}</strong>. Viewing all{' '}
+                <strong>{leads.length} company leads</strong> and{' '}
+                <strong>{calls.length} logged calls</strong>.
               </span>
             </>
           ) : (
             <>
               <Lock className="w-4 h-4 text-blue-600 shrink-0" />
               <span>
-                <strong>🔒 यूज़र मोड (Private Access):</strong> आप{' '}
-                <strong className="text-blue-900">{currentUser.name}</strong> के रूप में लॉग इन
-                हैं। आप केवल अपनी खुद की <strong>{visibleLeads.length} लीड्स</strong> और{' '}
-                <strong>{visibleCalls.length} कॉल्स</strong> देख सकते हैं। अन्य यूज़र्स का डेटा
-                सुरक्षित है।
+                <strong>🔒 User Mode (Private Access):</strong> Logged in as{' '}
+                <strong className="text-blue-900">{currentUser.name}</strong>. Viewing your{' '}
+                <strong>{visibleLeads.length} assigned leads</strong> and{' '}
+                <strong>{visibleCalls.length} calls</strong>.
               </span>
             </>
           )}

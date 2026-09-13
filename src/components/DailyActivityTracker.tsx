@@ -51,7 +51,7 @@ const getLocalYMD = (date: Date = new Date()): string => {
   return `${y}-${m}-${d}`;
 };
 
-// Helper to format date in readable Indian style (e.g., "13 Sep 2026, रविवार")
+// Helper to format date in readable Indian style (e.g., "Sun, 13 Sep 2026")
 const formatDisplayDate = (ymd: string): string => {
   try {
     const [year, month, day] = ymd.split('-').map(Number);
@@ -62,7 +62,7 @@ const formatDisplayDate = (ymd: string): string => {
       year: 'numeric',
       weekday: 'short',
     };
-    return date.toLocaleDateString('hi-IN', options);
+    return date.toLocaleDateString('en-IN', options);
   } catch (e) {
     return ymd;
   }
@@ -207,7 +207,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
 
       list.push({
         ymd,
-        label: i === 0 ? 'आज (Today)' : i === 1 ? 'कल (Yesterday)' : formatDisplayDate(ymd),
+        label: i === 0 ? 'Today' : i === 1 ? 'Yesterday' : formatDisplayDate(ymd),
         visitsTotal: dVisits.length,
         visitsConducted: dConducted,
         visitsScheduled: dScheduled,
@@ -249,17 +249,17 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                 <CalendarCheck2 className="w-5 h-5" />
               </span>
               <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                {t('dailyActivityTitle', 'प्रतिदिन विज़िट एवं पेमेंट ट्रैकर (Daily Visits & Collections)')}
+                {t('dailyActivityTitle', 'Daily Visits & Collections Tracker')}
               </h3>
               {selectedMember && (
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 flex items-center gap-1">
                   <User className="w-3 h-3" />
-                  <span>{t('filterExecutive', 'फ़िल्टर')}: {selectedMember}</span>
+                  <span>{t('filterExecutive', 'Filter')}: {selectedMember}</span>
                 </span>
               )}
             </div>
             <p className="text-xs text-slate-300 mt-1 max-w-2xl">
-              {t('dailyActivitySubtitle', 'चयनित दिन की सभी ऑन-ग्राउंड साइट विज़िट्स और प्राप्त टोकन / सेल एग्रीमेंट भुगतानों का सीधा लेखा-जोखा।')}
+              {t('dailyActivitySubtitle', 'On-ground site visits and received token / sale agreement payments recorded for the selected date.')}
             </p>
           </div>
 
@@ -275,7 +275,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                   : 'text-slate-300 hover:text-white hover:bg-white/10'
               }`}
             >
-              {t('today', 'आज (Today)')}
+              {t('today', 'Today')}
             </button>
             <button
               type="button"
@@ -286,7 +286,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                   : 'text-slate-300 hover:text-white hover:bg-white/10'
               }`}
             >
-              {t('yesterday', 'कल (Yesterday)')}
+              {t('yesterday', 'Yesterday')}
             </button>
 
             {/* Stepper buttons */}
@@ -294,7 +294,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
               <button
                 type="button"
                 onClick={handlePrevDay}
-                title="पिछला दिन (Previous Day)"
+                title="Previous Day"
                 className="p-1 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -314,7 +314,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
               <button
                 type="button"
                 onClick={handleNextDay}
-                title="अगला दिन (Next Day)"
+                title="Next Day"
                 className="p-1 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -337,7 +337,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-300 font-medium flex items-center gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                <span>दैनिक विज़िट्स (Visits)</span>
+                <span>Daily Visits</span>
               </span>
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-400/20 text-emerald-300 border border-emerald-400/30">
                 {formatDisplayDate(selectedDate)}
@@ -345,16 +345,16 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             </div>
             <div className="text-2xl font-black text-white mt-1">
               {totalVisitsCount}{' '}
-              <span className="text-xs font-normal text-slate-300">विज़िट्स</span>
+              <span className="text-xs font-normal text-slate-300">Visits</span>
             </div>
             <div className="text-[11px] text-slate-300 mt-0.5 flex items-center gap-2">
-              <span className="text-emerald-300 font-bold">{conductedVisitsCount} संपन्न</span>
+              <span className="text-emerald-300 font-bold">{conductedVisitsCount} Conducted</span>
               <span>•</span>
-              <span className="text-sky-300 font-bold">{scheduledVisitsCount} शेड्यूल्ड</span>
+              <span className="text-sky-300 font-bold">{scheduledVisitsCount} Scheduled</span>
               {rescheduledVisitsCount > 0 && (
                 <>
                   <span>•</span>
-                  <span className="text-amber-300">{rescheduledVisitsCount} अन्य</span>
+                  <span className="text-amber-300">{rescheduledVisitsCount} Other</span>
                 </>
               )}
             </div>
@@ -372,10 +372,10 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-300 font-medium flex items-center gap-1.5">
                 <IndianRupee className="w-3.5 h-3.5 text-amber-400" />
-                <span>दैनिक कलेक्शन (Payments)</span>
+                <span>Daily Collections</span>
               </span>
               <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                {paymentsForDate.tokens.length + paymentsForDate.leadPayments.length} रसीदें
+                {paymentsForDate.tokens.length + paymentsForDate.leadPayments.length} Receipts
               </span>
             </div>
             <div className="text-2xl font-black text-amber-300 mt-1">
@@ -383,9 +383,9 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             </div>
             <div className="text-[11px] text-slate-300 mt-0.5">
               {totalDealValueGenerated > 0 ? (
-                <span>डील वैल्यू: {formatINR(totalDealValueGenerated, true)}</span>
+                <span>Deal Value: {formatINR(totalDealValueGenerated, true)}</span>
               ) : (
-                <span>टोकन एवं बयाना राशि</span>
+                <span>Token & Advance Payments</span>
               )}
             </div>
           </div>
@@ -395,7 +395,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-300 font-medium flex items-center gap-1.5">
                 <Phone className="w-3.5 h-3.5 text-sky-400" />
-                <span>दैनिक कॉल्स (Calls Logged)</span>
+                <span>Daily Calls Logged</span>
               </span>
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-sky-400/20 text-sky-300">
                 Target: 50
@@ -403,30 +403,30 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             </div>
             <div className="text-2xl font-black text-white mt-1">
               {callsForDate.length}{' '}
-              <span className="text-xs font-normal text-slate-300">कॉल्स</span>
+              <span className="text-xs font-normal text-slate-300">Calls</span>
             </div>
             <div className="text-[11px] text-slate-300 mt-0.5">
-              कॉल ट्रैकर से लॉग की गई कॉल्स
+              Calls logged via tracker
             </div>
           </div>
 
           {/* Quick Shortcuts */}
           <div className="p-3 rounded-xl bg-white/5 border border-white/10 flex flex-col justify-between">
-            <span className="text-xs text-slate-300 font-medium">त्वरित क्रिया (Quick Actions)</span>
+            <span className="text-xs text-slate-300 font-medium">Quick Actions</span>
             <div className="flex items-center gap-1.5 mt-2">
               <button
                 type="button"
                 onClick={() => onNavigate('site_visits')}
                 className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer text-center"
               >
-                + विज़िट शेड्यूल
+                + Schedule Visit
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('tokens_agreements')}
                 className="flex-1 py-1.5 px-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer text-center"
               >
-                + टोकन रसीद
+                + Token Receipt
               </button>
             </div>
           </div>
@@ -446,7 +446,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             }`}
           >
             <MapPin className="w-4 h-4 text-emerald-600" />
-            <span>{t('dailyVisitsTab', 'दैनिक साइट विज़िट्स (Site Visits)')}</span>
+            <span>{t('dailyVisitsTab', 'Daily Site Visits')}</span>
             <span
               className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                 totalVisitsCount > 0
@@ -468,7 +468,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             }`}
           >
             <IndianRupee className="w-4 h-4 text-amber-600" />
-            <span>{t('dailyPaymentsTab', 'दैनिक पेमेंट्स व टोकन (Payments)')}</span>
+            <span>{t('dailyPaymentsTab', 'Daily Payments & Tokens')}</span>
             <span
               className={`text-xs px-2 py-0.5 rounded-full font-bold ${
                 totalDayPaymentCollected > 0
@@ -490,12 +490,12 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             }`}
           >
             <TrendingUp className="w-4 h-4 text-indigo-600" />
-            <span>{t('daily7DayMatrixTab', '7-दिन का दैनिक सारांश (7-Day Matrix)')}</span>
+            <span>{t('daily7DayMatrixTab', '7-Day Summary Matrix')}</span>
           </button>
         </div>
 
         <div className="text-xs text-slate-500 font-medium py-2">
-          तारीख: <strong>{formatDisplayDate(selectedDate)}</strong>
+          Date: <strong>{formatDisplayDate(selectedDate)}</strong>
         </div>
       </div>
 
@@ -506,14 +506,14 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs text-slate-500 pb-1">
                 <span>
-                  इस दिन कुल <strong>{visitsForDate.length}</strong> विज़िट्स निर्धारित/संपन्न हैं:
+                  Total <strong>{visitsForDate.length}</strong> visits scheduled/conducted on this date:
                 </span>
                 <button
                   type="button"
                   onClick={() => onNavigate('site_visits')}
                   className="font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer"
                 >
-                  <span>विज़िट हब खोलें</span>
+                  <span>Open Site Visits</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -582,7 +582,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                       {/* Timing, Executive & Cab info */}
                       <div className="grid grid-cols-2 gap-2 text-xs py-2 my-2 border-y border-slate-200/80 bg-white/70 px-3 rounded-lg">
                         <div>
-                          <span className="text-slate-400 block text-[10px]">समय स्लॉट (Time):</span>
+                          <span className="text-slate-400 block text-[10px]">Time Slot:</span>
                           <span className="font-bold text-slate-800 flex items-center gap-1">
                             <Clock className="w-3 h-3 text-slate-500" />
                             <span>{timeSlot || '11:00 AM'}</span>
@@ -590,7 +590,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                         </div>
                         <div>
                           <span className="text-slate-400 block text-[10px]">
-                            सेल्स एग्जीक्यूटिव (Executive):
+                            Sales Executive:
                           </span>
                           <span className="font-bold text-slate-800 truncate block">
                             {v.salesExecutive || 'Unassigned'}
@@ -601,7 +601,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                           <div className="col-span-2 pt-1 border-t border-slate-100 flex items-center gap-1 text-slate-700 text-[11px]">
                             <Car className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                             <span>
-                              कैब पिकअप:{' '}
+                              Cab Pickup:{' '}
                               <strong>{v.cabAssigned || 'Cab Assigned'}</strong> •{' '}
                               {v.pickupAddress || 'Customer Address'}
                             </span>
@@ -634,7 +634,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                             onClick={() =>
                               openWhatsApp(
                                 v.leadMobile,
-                                `नमस्ते ${v.leadName} जी, Housing Worlds से ${v.salesExecutive || 'टीम'}। ${v.projectName} की साइट विज़िट के संबंध में संपर्क किया। क्या आप नियत समय पर उपलब्ध हैं?`
+                                `Hello ${v.leadName}, this is ${v.salesExecutive || 'the team'} from Housing World regarding your site visit for ${v.projectName}. Are you available as per scheduled time?`
                               )
                             }
                             className="p-1.5 text-emerald-700 bg-emerald-100 hover:bg-emerald-200 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer"
@@ -650,7 +650,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                             title="Call customer"
                           >
                             <Phone className="w-3.5 h-3.5" />
-                            <span className="text-[11px]">कॉल</span>
+                            <span className="text-[11px]">Call</span>
                           </button>
                         </div>
                       </div>
@@ -663,10 +663,10 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             <div className="text-center py-10 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
               <MapPin className="w-10 h-10 text-slate-400 mx-auto mb-2 opacity-50" />
               <h4 className="text-sm font-bold text-slate-800">
-                तारीख {formatDisplayDate(selectedDate)} को कोई साइट विज़िट दर्ज नहीं है
+                No site visits recorded on {formatDisplayDate(selectedDate)}
               </h4>
               <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-                इस तारीख के लिए कोई साइट विज़िट शेड्यूल या संपन्न नहीं है। आप सीधे नयी साइट विज़िट बुक कर सकते हैं।
+                No site visits are scheduled or conducted for this date. You can schedule a new site visit directly.
               </p>
               <button
                 type="button"
@@ -674,7 +674,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                 className="mt-4 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
-                <span>+ नयी साइट विज़िट शेड्यूल करें</span>
+                <span>+ Schedule New Site Visit</span>
               </button>
             </div>
           )}
@@ -688,15 +688,15 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs text-slate-500 pb-1">
                 <span>
-                  इस दिन कुल <strong>{formatINR(totalDayPaymentCollected, true)}</strong> का कलेक्शन (
-                  {paymentsForDate.tokens.length + paymentsForDate.leadPayments.length} ट्रांजैक्शन):
+                  Total collections on this date: <strong>{formatINR(totalDayPaymentCollected, true)}</strong> (
+                  {paymentsForDate.tokens.length + paymentsForDate.leadPayments.length} transactions):
                 </span>
                 <button
                   type="button"
                   onClick={() => onNavigate('tokens_agreements')}
                   className="font-bold text-amber-700 hover:text-amber-800 flex items-center gap-1 cursor-pointer"
                 >
-                  <span>टोकन व एग्रीमेंट्स खोलें</span>
+                  <span>Open Tokens & Agreements</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -738,19 +738,19 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                     {/* Financial details row */}
                     <div className="grid grid-cols-3 gap-2 text-xs py-2 my-2 border-y border-amber-200/60 bg-white/80 px-3 rounded-lg">
                       <div>
-                        <span className="text-slate-400 block text-[10px]">प्रकार (Deal Type):</span>
+                        <span className="text-slate-400 block text-[10px]">Deal Type:</span>
                         <span className="font-bold text-slate-800 text-[11px] truncate block">
                           {t.dealType}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block text-[10px]">कुल डील वैल्यू:</span>
+                        <span className="text-slate-400 block text-[10px]">Total Deal Value:</span>
                         <span className="font-bold text-slate-800 text-[11px]">
                           {formatINR(t.totalDealValue, true)}
                         </span>
                       </div>
                       <div>
-                        <span className="text-slate-400 block text-[10px]">बकाया राशि:</span>
+                        <span className="text-slate-400 block text-[10px]">Balance Due:</span>
                         <span className="font-bold text-rose-700 text-[11px]">
                           {formatINR(t.balanceDue, true)}
                         </span>
@@ -761,7 +761,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                     <div className="text-xs text-slate-600 flex items-center justify-between flex-wrap gap-1 mb-2">
                       <span className="flex items-center gap-1">
                         <User className="w-3 h-3 text-slate-400" />
-                        <span>क्लोजर: <strong>{t.executiveName}</strong></span>
+                        <span>Closer: <strong>{t.executiveName}</strong></span>
                       </span>
                       {t.transactionRef && (
                         <span className="font-mono text-[11px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
@@ -779,20 +779,20 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                           onClick={() =>
                             openWhatsApp(
                               t.clientMobile,
-                              `नमस्ते ${t.clientName} जी, Housing Worlds से आधिकारिक टोकन रसीद: ${t.receiptNumber}। परियोजना: ${t.projectName} (${t.unitNumber})। भुगतान राशि: ${formatINR(t.tokenAmount)} प्राप्त हुई। बहुत-बहुत बधाई!`
+                              `Hello ${t.clientName}, official token receipt from Housing World: ${t.receiptNumber}. Project: ${t.projectName} (${t.unitNumber}). Payment amount: ${formatINR(t.tokenAmount)} received. Congratulations!`
                             )
                           }
                           className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1 transition-colors cursor-pointer"
                         >
                           <MessageCircle className="w-3.5 h-3.5" />
-                          <span>रसीद शेयर करें</span>
+                          <span>Share Receipt</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => onNavigate('tokens_agreements')}
                           className="px-2 py-1 text-slate-700 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
                         >
-                          विवरण
+                          Details
                         </button>
                       </div>
                     </div>
@@ -825,13 +825,13 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                       </div>
                     </div>
                     <div className="text-xs text-slate-600 flex items-center justify-between pt-2 border-t border-slate-200">
-                      <span>सेल्सपर्सन: <strong>{lp.salesperson}</strong></span>
+                      <span>Salesperson: <strong>{lp.salesperson}</strong></span>
                       <button
                         type="button"
                         onClick={() => onViewLeadDetail && onViewLeadDetail(lp)}
                         className="text-xs font-bold text-blue-600 hover:text-blue-800 cursor-pointer"
                       >
-                        लीड विवरण देखें &rarr;
+                        View Lead Details &rarr;
                       </button>
                     </div>
                   </div>
@@ -842,10 +842,10 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             <div className="text-center py-10 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-300">
               <IndianRupee className="w-10 h-10 text-slate-400 mx-auto mb-2 opacity-50" />
               <h4 className="text-sm font-bold text-slate-800">
-                तारीख {formatDisplayDate(selectedDate)} को कोई टोकन या पेमेंट रिकॉर्ड नहीं है
+                No token or payment records on {formatDisplayDate(selectedDate)}
               </h4>
               <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-                इस तारीख के लिए कोई भुगतान अथवा बयाना राशि दर्ज नहीं है। आप नया टोकन या सेल एग्रीमेंट रसीद अभी दर्ज कर सकते हैं।
+                No payment or advance token records found for this date. You can record a new token or sale agreement receipt now.
               </p>
               <button
                 type="button"
@@ -853,7 +853,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                 className="mt-4 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer inline-flex items-center gap-1.5"
               >
                 <Plus className="w-4 h-4" />
-                <span>+ नया टोकन / पेमेंट रसीद दर्ज करें</span>
+                <span>+ Record New Token / Payment</span>
               </button>
             </div>
           )}
@@ -864,9 +864,9 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
       {activeTab === 'trend' && (
         <div className="p-4 sm:p-5">
           <div className="text-xs text-slate-500 mb-3 flex items-center justify-between">
-            <span>विगत 7 दिनों का दिन-प्रतिदिन विज़िट्स एवं पेमेंट कलेक्शन विश्लेषण:</span>
+            <span>Day-by-day visits and payment collection breakdown for the past 7 days:</span>
             <span className="text-[11px] text-slate-400">
-              किसी भी तारीख के कार्ड पर क्लिक करके उसका विस्तृत विवरण देखें
+              Click any date row to view full details
             </span>
           </div>
 
@@ -874,11 +874,11 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
             <table className="w-full text-left text-xs sm:text-sm border-collapse">
               <thead>
                 <tr className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
-                  <th className="py-2.5 px-4">तारीख (Date)</th>
-                  <th className="py-2.5 px-4 text-center">साइट विज़िट्स (Visits)</th>
-                  <th className="py-2.5 px-4 text-right">कलेक्शन (Payment ₹)</th>
-                  <th className="py-2.5 px-4 text-center">लॉग कॉल्स (Calls)</th>
-                  <th className="py-2.5 px-4 text-right">क्रिया (Action)</th>
+                  <th className="py-2.5 px-4">Date</th>
+                  <th className="py-2.5 px-4 text-center">Site Visits</th>
+                  <th className="py-2.5 px-4 text-right">Collections (₹)</th>
+                  <th className="py-2.5 px-4 text-center">Calls Logged</th>
+                  <th className="py-2.5 px-4 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -900,12 +900,12 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                           <span>{row.label}</span>
                           {row.isToday && (
                             <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
-                              आज
+                              Today
                             </span>
                           )}
                           {isCurrent && (
                             <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-1.5 py-0.5 rounded">
-                              चयनित
+                              Selected
                             </span>
                           )}
                         </div>
@@ -927,7 +927,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                         </span>
                         {row.visitsConducted > 0 && (
                           <div className="text-[10px] text-slate-500 mt-0.5">
-                            ({row.visitsConducted} संपन्न)
+                            ({row.visitsConducted} Conducted)
                           </div>
                         )}
                       </td>
@@ -942,13 +942,13 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                         </span>
                         {row.tokensCount > 0 && (
                           <div className="text-[10px] text-slate-400 font-normal">
-                            {row.tokensCount} रसीदें
+                            {row.tokensCount} Receipts
                           </div>
                         )}
                       </td>
 
                       <td className="py-3 px-4 text-center text-slate-700 font-medium">
-                        {row.callsCount} कॉल्स
+                        {row.callsCount} Calls
                       </td>
 
                       <td className="py-3 px-4 text-right">
@@ -961,7 +961,7 @@ export const DailyActivityTracker: React.FC<DailyActivityTrackerProps> = ({
                           }}
                           className="px-2.5 py-1 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-200 transition-colors cursor-pointer"
                         >
-                          विवरण देखें
+                          View Details
                         </button>
                       </td>
                     </tr>

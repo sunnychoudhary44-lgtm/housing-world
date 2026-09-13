@@ -51,7 +51,7 @@ interface SalesPipelineViewProps {
 export const STAGES_CONFIG: Array<{
   stage: DealStage;
   label: string;
-  hindiLabel: string;
+  subLabel: string;
   color: string;
   badgeBg: string;
   borderClass: string;
@@ -60,7 +60,7 @@ export const STAGES_CONFIG: Array<{
   {
     stage: 'Discovery',
     label: 'Discovery & Need',
-    hindiLabel: 'प्रारंभिक खोज',
+    subLabel: 'Needs Analysis',
     color: 'text-sky-700',
     badgeBg: 'bg-sky-100 text-sky-800 border-sky-300',
     borderClass: 'border-sky-400',
@@ -69,7 +69,7 @@ export const STAGES_CONFIG: Array<{
   {
     stage: 'Site Visit Scheduled',
     label: 'Site Visit Scheduled',
-    hindiLabel: 'साइट विज़िट तय',
+    subLabel: 'Visit Fixed',
     color: 'text-indigo-700',
     badgeBg: 'bg-indigo-100 text-indigo-800 border-indigo-300',
     borderClass: 'border-indigo-400',
@@ -78,7 +78,7 @@ export const STAGES_CONFIG: Array<{
   {
     stage: 'Site Visit Completed',
     label: 'Site Visit Done',
-    hindiLabel: 'विज़िट सम्पन्न',
+    subLabel: 'Visit Done',
     color: 'text-purple-700',
     badgeBg: 'bg-purple-100 text-purple-800 border-purple-300',
     borderClass: 'border-purple-400',
@@ -87,7 +87,7 @@ export const STAGES_CONFIG: Array<{
   {
     stage: 'Negotiation & Proposal',
     label: 'Negotiation & Quote',
-    hindiLabel: 'मोलभाव व कोटेशन',
+    subLabel: 'Discussion & Quote',
     color: 'text-amber-700',
     badgeBg: 'bg-amber-100 text-amber-800 border-amber-300',
     borderClass: 'border-amber-400',
@@ -96,7 +96,7 @@ export const STAGES_CONFIG: Array<{
   {
     stage: 'Token Received',
     label: 'Token / Bayana Paid',
-    hindiLabel: 'टोकन प्राप्त',
+    subLabel: 'Token Received',
     color: 'text-emerald-700',
     badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300',
     borderClass: 'border-emerald-400',
@@ -105,7 +105,7 @@ export const STAGES_CONFIG: Array<{
   {
     stage: 'Agreement Signed',
     label: 'ATS / BBA Signed',
-    hindiLabel: 'एग्रीमेंट हस्ताक्षरित',
+    subLabel: 'Agreement Signed',
     color: 'text-teal-700',
     badgeBg: 'bg-teal-100 text-teal-800 border-teal-300',
     borderClass: 'border-teal-400',
@@ -114,7 +114,7 @@ export const STAGES_CONFIG: Array<{
   {
     stage: 'Closed Won',
     label: 'Closed Won (Registry)',
-    hindiLabel: 'सौदा पक्का (रजिस्ट्री)',
+    subLabel: 'Deal Closed',
     color: 'text-emerald-900',
     badgeBg: 'bg-emerald-200 text-emerald-900 border-emerald-400 font-bold',
     borderClass: 'border-emerald-600',
@@ -123,7 +123,7 @@ export const STAGES_CONFIG: Array<{
   {
     stage: 'Closed Lost',
     label: 'Closed Lost',
-    hindiLabel: 'सौदा छूटा (Lost)',
+    subLabel: 'Deal Lost',
     color: 'text-slate-600',
     badgeBg: 'bg-slate-100 text-slate-700 border-slate-300',
     borderClass: 'border-slate-400',
@@ -603,7 +603,7 @@ export const SalesPipelineView: React.FC<SalesPipelineViewProps> = ({
       {viewMode === 'kanban' && (
         <div className="overflow-x-auto pb-4">
           <div className="flex gap-4 min-w-[1280px]">
-            {STAGES_CONFIG.map(({ stage, label, hindiLabel, color, badgeBg, borderClass, headerBg }) => {
+            {STAGES_CONFIG.map(({ stage, label, subLabel, color, badgeBg, borderClass, headerBg }) => {
               const stageDeals = filteredDeals.filter((d) => d.stage === stage);
               const stageValue = stageDeals.reduce((sum, d) => sum + (d.dealValue || 0), 0);
 
@@ -623,7 +623,7 @@ export const SalesPipelineView: React.FC<SalesPipelineViewProps> = ({
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1">
-                      <span>{hindiLabel}</span>
+                      <span>{subLabel}</span>
                       <span className="font-bold text-slate-800">{formatINR(stageValue, true)}</span>
                     </div>
                   </div>
@@ -1071,7 +1071,7 @@ export const SalesPipelineView: React.FC<SalesPipelineViewProps> = ({
                   >
                     {STAGES_CONFIG.map((s) => (
                       <option key={s.stage} value={s.stage}>
-                        {s.label} ({s.hindiLabel})
+                        {s.label} ({s.subLabel})
                       </option>
                     ))}
                   </select>

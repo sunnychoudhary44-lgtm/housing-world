@@ -171,7 +171,7 @@ export const DevelopersView: React.FC<DevelopersViewProps> = ({
           <div>
             <div className="flex items-center gap-2 text-indigo-400 text-xs font-semibold uppercase tracking-wider mb-1">
               <Building2 className="w-4 h-4" />
-              <span>Housing World Developer CRM • बिल्डर्स एवं प्रमोटर्स</span>
+              <span>Housing World Developer CRM • Builders & Promoters</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               Real-Estate Developers

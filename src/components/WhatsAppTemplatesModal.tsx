@@ -29,11 +29,11 @@ export const WhatsAppTemplatesModal: React.FC<WhatsAppTemplatesModalProps> = ({
   // Fill in variables
   const personalizedText = activeTemplate.message
     .replace(/{name}/g, selectedLead?.name || 'Sir/Ma’am')
-    .replace(/{project}/g, selectedLead?.project || 'हमारे प्राइम टाउनशिप')
-    .replace(/{size}/g, selectedLead?.size || '100 गज')
+    .replace(/{project}/g, selectedLead?.project || 'our prime township')
+    .replace(/{size}/g, selectedLead?.size || '100 sq.yd')
     .replace(
       /{salesperson}/g,
-      selectedLead?.salesperson || 'Housing Worlds सेल्स टीम'
+      selectedLead?.salesperson || 'Housing Worlds Sales Team'
     );
 
   const handleCopy = () => {
@@ -99,7 +99,7 @@ export const WhatsAppTemplatesModal: React.FC<WhatsAppTemplatesModalProps> = ({
                     }`}
                   >
                     <div className="font-semibold text-xs text-slate-900">{tpl.title}</div>
-                    <div className="text-[11px] text-slate-500 mt-0.5">{tpl.labelHindi}</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">{tpl.subtitle || tpl.labelHindi}</div>
                   </button>
                 );
               })}

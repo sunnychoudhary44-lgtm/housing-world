@@ -892,7 +892,7 @@ Please let us know if you need any adjustments in schedule. Looking forward to m
                     : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
                 }`}
               >
-                Today (आज)
+                Today
               </button>
               <button
                 type="button"
@@ -903,7 +903,7 @@ Please let us know if you need any adjustments in schedule. Looking forward to m
                     : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
                 }`}
               >
-                Tomorrow (कल)
+                Tomorrow
               </button>
               <button
                 type="button"
@@ -1670,11 +1670,11 @@ Please let us know if you need any adjustments in schedule. Looking forward to m
                     onChange={(e) => setMomStage(e.target.value as MeetingStage)}
                     className="w-full px-3 py-2 bg-slate-800 text-sm text-slate-200 rounded-xl border border-slate-700 focus:outline-none focus:border-teal-500"
                   >
-                    <option value="Completed">Completed (सफल मीटिंग)</option>
-                    <option value="Follow-up Needed">Follow-up Needed (फॉलो-अप अपेक्षित)</option>
-                    <option value="Rescheduled">Rescheduled (रीशेड्यूल)</option>
-                    <option value="In Progress">In Progress (चल रही है)</option>
-                    <option value="Cancelled">Cancelled (रद्द)</option>
+                    <option value="Completed">Completed (Successful Meeting)</option>
+                    <option value="Follow-up Needed">Follow-up Needed</option>
+                    <option value="Rescheduled">Rescheduled</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Cancelled">Cancelled</option>
                   </select>
                 </div>
                 <div>

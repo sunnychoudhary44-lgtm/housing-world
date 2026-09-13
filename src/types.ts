@@ -385,12 +385,13 @@ export interface CallLog {
   updatedLeadStatus?: LeadStatus;
 }
 
-export type Language = 'en' | 'hi' | 'hinglish';
+export type Language = 'en' | 'hinglish';
 
 export interface WhatsAppTemplate {
   id: string;
   title: string;
-  labelHindi: string;
+  subtitle: string;
+  labelHindi?: string;
   message: string;
 }
 

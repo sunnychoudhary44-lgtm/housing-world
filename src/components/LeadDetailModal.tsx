@@ -120,7 +120,7 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
               onClick={() =>
                 openWhatsApp(
                   lead.mobile,
-                  `नमस्ते ${lead.name} जी, Housing Worlds से ${lead.salesperson || 'टीम'}। ${lead.project ? `प्रोजेक्ट ${lead.project}` : ''} के बारे में बातचीत करने हेतु संपर्क किया।`
+                  `Hello ${lead.name}, this is ${lead.salesperson || 'the team'} from Housing Worlds. Reaching out regarding ${lead.project ? `project ${lead.project}` : 'your property inquiry'}.`
                 )
               }
               className="p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 font-semibold text-xs flex flex-col items-center justify-center gap-1 border border-emerald-200 transition-colors cursor-pointer"
@@ -228,22 +228,22 @@ export const LeadDetailModal: React.FC<LeadDetailModalProps> = ({
                     </div>
                     <div>
                       <div className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
-                        पेमेंट व टोकन कलेक्शन
+                        Payment & Token Collection
                       </div>
                       <div className="text-base sm:text-lg font-black text-emerald-950">
                         {formatINR(paymentAmt)}{' '}
                         <span className="text-xs font-semibold text-slate-500">
-                          {lead.totalDealValue ? `/ डील वैल्यू ${formatINR(lead.totalDealValue)}` : ''}
+                          {lead.totalDealValue ? `/ Deal Value ${formatINR(lead.totalDealValue)}` : ''}
                         </span>
                       </div>
                     </div>
                   </div>
                   <div className="text-left sm:text-right">
                     <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-900">
-                      टारगेट में शामिल
+                      Counted in Target
                     </span>
                     <p className="text-[11px] text-emerald-700 mt-0.5 font-medium">
-                      {lead.salesperson ? `${lead.salesperson} के टारगेट में काउंटेड` : 'सेल्स टीम टारगेट'}
+                      {lead.salesperson ? `Counted towards ${lead.salesperson}'s target` : 'Sales team target'}
                     </p>
                   </div>
                 </div>

@@ -238,7 +238,7 @@ export const BrokersView: React.FC<BrokersViewProps> = ({
           <div>
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-1">
               <Users2 className="w-4 h-4" />
-              <span>Housing World Channel Partner Network • ब्रोकर्स एवं डिस्ट्रीब्यूटर्स</span>
+              <span>Housing World Channel Partner Network • Brokers & Distributors</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               Brokers & Channel Partners

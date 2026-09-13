@@ -367,7 +367,7 @@ export const ProjectsView: React.FC<ProjectsViewProps> = ({
           <div>
             <div className="flex items-center gap-2 text-sky-400 text-xs font-semibold uppercase tracking-wider mb-1">
               <Layers className="w-4 h-4" />
-              <span>Housing World Project & Inventory Hub • प्रोजेक्ट्स एवं यूनिट्स</span>
+              <span>Housing World Project & Inventory Hub • Projects & Units</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
               Real-Estate Projects & Inventory

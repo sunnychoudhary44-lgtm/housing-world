@@ -166,7 +166,7 @@ export const TeamMemberDetailModal: React.FC<TeamMemberDetailModalProps> = ({
                   onClick={() =>
                     openWhatsApp(
                       memberUser.mobile,
-                      `नमस्ते ${memberName} जी, Housing Worlds Admin Dashboard से। आपकी लीड्स और फॉलो-अप्स का रिव्यू करने के लिए संपर्क किया।`
+                      `Hello ${memberName}, this is Housing Worlds Admin. Reaching out to review your leads and follow-ups status.`
                     )
                   }
                   className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors"
@@ -246,7 +246,7 @@ export const TeamMemberDetailModal: React.FC<TeamMemberDetailModalProps> = ({
               <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider flex items-center justify-between">
                 <span className="flex items-center gap-0.5">
                   <IndianRupee className="w-3 h-3 text-emerald-600" />
-                  <span>पेमेंट टारगेट</span>
+                  <span>Payment Target</span>
                 </span>
                 <span className="text-emerald-700 font-black">{percentPayment}%</span>
               </span>
@@ -257,7 +257,7 @@ export const TeamMemberDetailModal: React.FC<TeamMemberDetailModalProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 mt-0.5">
-                {formatINR(collectedPayment)} प्राप्त
+                {formatINR(collectedPayment)} collected
               </p>
             </div>
           </div>
@@ -297,7 +297,7 @@ export const TeamMemberDetailModal: React.FC<TeamMemberDetailModalProps> = ({
               <div className="flex items-center justify-between text-xs font-semibold text-emerald-900 mb-1.5">
                 <div className="flex items-center gap-1.5">
                   <IndianRupee className="w-4 h-4 text-emerald-600" />
-                  <span>पेमेंट टारगेट ({formatINR(targetPayment, true)})</span>
+                  <span>Payment Target ({formatINR(targetPayment, true)})</span>
                 </div>
                 <span className="font-bold text-emerald-700">{percentPayment}%</span>
               </div>
@@ -391,7 +391,7 @@ export const TeamMemberDetailModal: React.FC<TeamMemberDetailModalProps> = ({
                           onClick={() =>
                             openWhatsApp(
                               lead.mobile,
-                              `नमस्ते ${lead.name} जी, Housing Worlds से ${lead.salesperson}। ${lead.project ? `प्रोजेक्ट ${lead.project}` : ''} के सिलसिले में संपर्क कर रहे हैं।`
+                              `Hello ${lead.name}, this is ${lead.salesperson} from Housing Worlds. Reaching out regarding ${lead.project ? `project ${lead.project}` : 'your property inquiry'}.`
                             )
                           }
                           className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-200 transition-colors"
@@ -421,7 +421,7 @@ export const TeamMemberDetailModal: React.FC<TeamMemberDetailModalProps> = ({
               </div>
             ) : (
               <div className="p-4 text-center bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-500">
-                {memberName} का कोई ओवरड्यू या आज का पेंडिंग फॉलो-अप नहीं है। सभी अप-टू-डेट हैं!
+                {memberName} has no overdue or pending follow-ups for today. Everything is up to date!
               </div>
             )}
           </div>
@@ -456,7 +456,7 @@ export const TeamMemberDetailModal: React.FC<TeamMemberDetailModalProps> = ({
               </div>
             ) : (
               <div className="p-3 text-center bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-500">
-                अभी तक {memberName} द्वारा कोई कॉल लॉग नहीं की गई है।
+                No calls logged by {memberName} yet.
               </div>
             )}
           </div>

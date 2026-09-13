@@ -253,7 +253,7 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
               }`}
             >
               <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>एक्सेल से इम्पोर्ट करें</span>
+              <span>Import from Excel</span>
             </button>
           </div>
         ) : (
@@ -272,10 +272,10 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
             </div>
             <div>
               <div className="text-xs sm:text-sm font-bold text-emerald-900">
-                बड़ी संख्या में लीड्स हैं? (Bulk Leads in Excel?)
+                Have bulk leads in an Excel file?
               </div>
               <div className="text-[11px] text-emerald-700">
-                एक-एक करके भरने के बजाय पूरी एक्सेल (.xlsx) या CSV शीट सीधे CRM में इम्पोर्ट करें।
+                Import your entire Excel (.xlsx) or CSV sheet directly into the CRM instead of entering one by one.
               </div>
             </div>
           </div>
@@ -286,7 +286,7 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
             className="px-3.5 py-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-all shadow-2xs hover:shadow-emerald-600/20 active:scale-95 cursor-pointer flex items-center gap-1.5 ml-auto sm:ml-0"
           >
             <UploadCloud className="w-3.5 h-3.5" />
-            <span>एक्सेल शीट इम्पोर्ट खोलें</span>
+            <span>Open Excel Importer</span>
           </button>
         </div>
       )}
@@ -576,7 +576,7 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
                   <IndianRupee className="w-4 h-4 text-emerald-600" />
-                  <span>पेमेंट व टोकन कलेक्शन (Payment Target Tracker)</span>
+                  <span>Payment & Token Collection (Payment Target Tracker)</span>
                 </label>
                 <span className="text-[11px] text-emerald-700 font-medium">
                   {status === 'Booking' || status === 'Closed' ? '🌟 Direct Target Contribution' : 'Optional Advance/Token'}
@@ -586,7 +586,7 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label htmlFor="paymentReceived" className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Payment Received / Advance Token (₹ प्राप्त राशि)
+                    Payment Received / Advance Token (₹ Amount)
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-xs text-slate-400 font-bold">₹</span>
@@ -618,7 +618,7 @@ export const LeadFormView: React.FC<LeadFormViewProps> = ({
 
                 <div>
                   <label htmlFor="totalDealValue" className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    Total Deal Value (₹ कुल सौदा मूल्य)
+                    Total Deal Value (₹ Total Value)
                   </label>
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-xs text-slate-400 font-bold">₹</span>
