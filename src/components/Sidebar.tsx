@@ -9,11 +9,10 @@ import {
   Flame,
   AlertTriangle,
   PhoneCall,
-  Building2,
-  Layers,
   Users2,
   CalendarCheck2,
   Calculator,
+  FileCheck2,
 } from 'lucide-react';
 import { ActivePage, Lead, CallLog, AuthUser, Developer, Project, Broker } from '../types';
 import { getFollowupTiming } from '../utils/formatters';
@@ -29,6 +28,7 @@ interface SidebarProps {
   brokersCount?: number;
   siteVisitsCount?: number;
   costSheetsCount?: number;
+  tokensAgreementsCount?: number;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -42,6 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   brokersCount = 0,
   siteVisitsCount = 0,
   costSheetsCount = 0,
+  tokensAgreementsCount = 0,
 }) => {
   const isAdmin = currentUser?.role === 'admin';
 
@@ -105,24 +106,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     badgeColor?: string;
   }> = [
     {
-      id: 'developers',
-      label: 'Developers / Builders',
-      icon: <Building2 className="w-4 h-4 shrink-0 text-indigo-400" />,
-      badge: developersCount > 0 ? developersCount : undefined,
-      badgeColor: 'bg-indigo-950 text-indigo-300 border border-indigo-700/50',
-    },
-    {
-      id: 'projects',
-      label: 'Projects & Inventory',
-      icon: <Layers className="w-4 h-4 shrink-0 text-sky-400" />,
-      badge: projectsCount > 0 ? projectsCount : undefined,
-      badgeColor: 'bg-sky-950 text-sky-300 border border-sky-700/50',
-    },
-    {
-      id: 'brokers',
-      label: 'Brokers & CPs',
-      icon: <Users2 className="w-4 h-4 shrink-0 text-emerald-400" />,
-      badge: brokersCount > 0 ? brokersCount : undefined,
+      id: 'tokens_agreements',
+      label: 'Tokens & Agreements',
+      icon: <FileCheck2 className="w-4 h-4 shrink-0 text-emerald-400" />,
+      badge: tokensAgreementsCount > 0 ? tokensAgreementsCount : undefined,
       badgeColor: 'bg-emerald-950 text-emerald-300 border border-emerald-700/50',
     },
     {
@@ -138,6 +125,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: <Calculator className="w-4 h-4 shrink-0 text-purple-400" />,
       badge: costSheetsCount > 0 ? costSheetsCount : undefined,
       badgeColor: 'bg-purple-950 text-purple-300 border border-purple-700/50',
+    },
+    {
+      id: 'brokers',
+      label: 'Brokers & CPs',
+      icon: <Users2 className="w-4 h-4 shrink-0 text-sky-400" />,
+      badge: brokersCount > 0 ? brokersCount : undefined,
+      badgeColor: 'bg-sky-950 text-sky-300 border border-sky-700/50',
     },
   ];
 

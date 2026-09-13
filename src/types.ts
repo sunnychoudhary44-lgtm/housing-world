@@ -294,15 +294,64 @@ export type ActivePage =
   | 'dashboard'
   | 'leads'
   | 'add'
+  | 'tokens_agreements'
   | 'site_visits'
   | 'cost_sheets'
-  | 'developers'
-  | 'projects'
   | 'brokers'
   | 'calls'
   | 'followups'
   | 'team'
-  | 'reports';
+  | 'reports'
+  | 'developers'
+  | 'projects';
+
+export type DealType = 'Token / Bayana' | 'Agreement (ATS/BBA)' | 'Token + Agreement' | 'Registry / Possession';
+
+export type TokenAgreementStatus =
+  | 'Token Received'
+  | 'Cheque in Clearance'
+  | 'Agreement Drafted'
+  | 'Agreement Signed'
+  | 'Registry Completed'
+  | 'Cancelled & Refunded';
+
+export type PaymentMethod =
+  | 'Cheque'
+  | 'NEFT / RTGS'
+  | 'UPI / QR'
+  | 'Bank Demand Draft'
+  | 'Cash';
+
+export interface TokenAgreement {
+  id: string;
+  receiptNumber: string; // e.g. "TK-2026-101"
+  dealType: DealType;
+  leadId?: number;
+  clientName: string;
+  clientMobile: string;
+  clientEmail?: string;
+  clientAddress?: string;
+  projectName: string;
+  projectId?: string;
+  unitNumber: string; // e.g. "Flat 1402, Tower B" or "Plot #45"
+  unitType?: string; // "3 BHK", "150 Gaj Plot", "Commercial Shop"
+  totalDealValue: number; // Total Property Price in ₹
+  tokenAmount: number; // Token or Agreement amount paid in ₹
+  balanceDue: number; // Remaining balance amount in ₹
+  paymentMode: PaymentMethod;
+  transactionRef?: string; // Cheque No / UTR / Transaction ID
+  bankName?: string;
+  paymentDate: string; // YYYY-MM-DD
+  agreementDate?: string; // YYYY-MM-DD
+  executiveName: string; // Salesperson / Executive who closed the deal
+  executiveMobile?: string;
+  brokerName?: string; // Optional Channel Partner / Broker
+  brokerCommission?: number; // Brokerage amount in ₹
+  status: TokenAgreementStatus;
+  termsAndNotes?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
 
 export type CallType = 'Outgoing' | 'Incoming' | 'Follow-up';
 

@@ -13,6 +13,7 @@ import {
   Broker,
   SiteVisit,
   CostSheet,
+  TokenAgreement,
 } from './types';
 import {
   INITIAL_LEADS,
@@ -28,6 +29,7 @@ import {
   INITIAL_BROKERS,
   INITIAL_SITE_VISITS,
   INITIAL_COST_SHEETS,
+  INITIAL_TOKENS_AGREEMENTS,
 } from './data/realEstateData';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -38,11 +40,10 @@ import { FollowupsView } from './components/FollowupsView';
 import { TeamView } from './components/TeamView';
 import { ReportsView } from './components/ReportsView';
 import { CallTrackerView } from './components/CallTrackerView';
-import { DevelopersView } from './components/DevelopersView';
-import { ProjectsView } from './components/ProjectsView';
 import { BrokersView } from './components/BrokersView';
 import { SiteVisitsView } from './components/SiteVisitsView';
 import { CostSheetView } from './components/CostSheetView';
+import { TokensAgreementsView } from './components/TokensAgreementsView';
 import { WhatsAppTemplatesModal } from './components/WhatsAppTemplatesModal';
 import { LeadDetailModal } from './components/LeadDetailModal';
 import { DeleteConfirmModal } from './components/DeleteConfirmModal';
@@ -77,6 +78,9 @@ import {
   subscribeToCostSheets,
   saveCostSheetToCloud,
   deleteCostSheetFromCloud,
+  subscribeToTokensAgreements,
+  saveTokenAgreementToCloud,
+  deleteTokenAgreementFromCloud,
   seedRealEstateIfEmpty,
 } from './services/crmFirestore';
 import { CheckCircle2, Info, Crown, Lock, User, ShieldCheck } from 'lucide-react';
@@ -210,6 +214,17 @@ export default function App() {
       }
     } catch (e) {}
     return INITIAL_COST_SHEETS;
+  });
+
+  const [tokensAgreements, setTokensAgreements] = useState<TokenAgreement[]>(() => {
+    try {
+      const s = localStorage.getItem('hwcrm_tokens_agreements');
+      if (s) {
+        const parsed = JSON.parse(s);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return INITIAL_TOKENS_AGREEMENTS;
   });
 
   const [developerFilterForProjects, setDeveloperFilterForProjects] = useState<string>('');
@@ -353,6 +368,19 @@ export default function App() {
       (err) => console.warn('Cost Sheets subscription note:', err)
     );
 
+    // Real-time synchronization for Tokens & Agreements
+    const unsubscribeTokensAgreements = subscribeToTokensAgreements(
+      (cloudTokens) => {
+        if (cloudTokens && cloudTokens.length > 0) {
+          setTokensAgreements(cloudTokens);
+          try {
+            localStorage.setItem('hwcrm_tokens_agreements', JSON.stringify(cloudTokens));
+          } catch (e) {}
+        }
+      },
+      (err) => console.warn('Tokens & Agreements subscription note:', err)
+    );
+
     // Initialize initial seed data if collections are newly initialized
     seedRealEstateIfEmpty(
       INITIAL_DEVELOPERS,
@@ -360,7 +388,8 @@ export default function App() {
       INITIAL_UNITS,
       INITIAL_BROKERS,
       INITIAL_SITE_VISITS,
-      INITIAL_COST_SHEETS
+      INITIAL_COST_SHEETS,
+      INITIAL_TOKENS_AGREEMENTS
     );
 
     return () => {
@@ -373,6 +402,7 @@ export default function App() {
       unsubscribeBrokers();
       unsubscribeSiteVisits();
       unsubscribeCostSheets();
+      unsubscribeTokensAgreements();
     };
   }, []);
 
@@ -459,6 +489,35 @@ export default function App() {
       return c.salesperson.trim().toLowerCase() === userNameLower;
     });
   }, [calls, currentUser]);
+
+  // Role-based tokens & agreements isolation
+  // Admin: sees all records across the company
+  // User: sees tokens & agreements closed by their name
+  const visibleTokensAgreements = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'admin') return tokensAgreements;
+    const userNameLower = (currentUser.name || '').trim().toLowerCase();
+    return tokensAgreements.filter((t) => {
+      if (!t.executiveName) return false;
+      return t.executiveName.trim().toLowerCase() === userNameLower;
+    });
+  }, [tokensAgreements, currentUser]);
+
+  // Role-based site visits isolation
+  // Admin: sees all site visits across the company
+  // User: sees visits where they are the assigned sales executive or telecaller
+  const visibleSiteVisits = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'admin') return siteVisits;
+    const userNameLower = (currentUser.name || '').trim().toLowerCase();
+    return siteVisits.filter((v) => {
+      if (!v.salesExecutive && !v.telecaller) return false;
+      return (
+        (v.salesExecutive && v.salesExecutive.trim().toLowerCase() === userNameLower) ||
+        (v.telecaller && v.telecaller.trim().toLowerCase() === userNameLower)
+      );
+    });
+  }, [siteVisits, currentUser]);
 
   // Lead Save handler (Add or Update)
   const handleSaveLead = (leadData: Omit<Lead, 'id'> & { id?: number }) => {
@@ -872,6 +931,34 @@ export default function App() {
     showToast('Cost sheet quotation removed.');
   };
 
+  // Real Estate: Tokens & Agreements handlers
+  const handleSaveTokenAgreement = (recordData: Omit<TokenAgreement, 'id'> & { id?: string }) => {
+    const recordId = recordData.id || `tk-${Date.now()}`;
+    const fullRecord: TokenAgreement = {
+      ...recordData,
+      id: recordId,
+      createdAt: recordData.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setTokensAgreements((prev) => {
+      const idx = prev.findIndex((r) => r.id === recordId);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = fullRecord;
+        return next;
+      }
+      return [fullRecord, ...prev];
+    });
+    saveTokenAgreementToCloud(fullRecord).catch(console.error);
+    showToast(`टोकन / एग्रीमेंट रसीद "${fullRecord.receiptNumber}" सुरक्षित की गई!`);
+  };
+
+  const handleDeleteTokenAgreement = (id: string) => {
+    setTokensAgreements((prev) => prev.filter((r) => r.id !== id));
+    deleteTokenAgreementFromCloud(id).catch(console.error);
+    showToast('टोकन / एग्रीमेंट रिकॉर्ड हटा दिया गया।');
+  };
+
   // Start editing a lead
   const handleStartEdit = (id: number) => {
     setEditingLeadId(id);
@@ -978,11 +1065,10 @@ export default function App() {
           leads={visibleLeads}
           calls={visibleCalls}
           currentUser={currentUser}
-          developersCount={developers.length}
-          projectsCount={projects.length}
           brokersCount={brokers.length}
           siteVisitsCount={siteVisits.length}
           costSheetsCount={costSheets.length}
+          tokensAgreementsCount={visibleTokensAgreements.length}
         />
 
         {/* Main Content Area */}
@@ -991,6 +1077,8 @@ export default function App() {
             <DashboardView
               leads={visibleLeads}
               calls={visibleCalls}
+              siteVisits={visibleSiteVisits}
+              tokensAgreements={visibleTokensAgreements}
               currentUser={currentUser}
               users={users}
               onNavigate={(page) => {
@@ -1079,40 +1167,17 @@ export default function App() {
             />
           )}
 
-          {/* Sell.Do Real Estate Suite: Developers */}
-          {activePage === 'developers' && (
-            <DevelopersView
-              developers={developers}
+          {/* Real Estate Suite: Tokens & Agreements */}
+          {activePage === 'tokens_agreements' && (
+            <TokensAgreementsView
+              tokensAgreements={tokensAgreements}
               projects={projects}
-              isAdmin={isAdmin}
-              onSaveDeveloper={handleSaveDeveloper}
-              onDeleteDeveloper={handleDeleteDeveloper}
-              onViewProjects={(devName) => {
-                setDeveloperFilterForProjects(devName);
-                setActivePage('projects');
-              }}
-            />
-          )}
-
-          {/* Sell.Do Real Estate Suite: Projects & Inventory */}
-          {activePage === 'projects' && (
-            <ProjectsView
-              projects={projects}
-              developers={developers}
-              units={units}
               leads={visibleLeads}
+              currentUser={currentUser || DEFAULT_USERS[0]}
               isAdmin={isAdmin}
-              initialDeveloperFilter={developerFilterForProjects}
-              onClearDeveloperFilter={() => setDeveloperFilterForProjects('')}
-              onSaveProject={handleSaveProject}
-              onDeleteProject={handleDeleteProject}
-              onSaveUnit={handleSaveUnit}
-              onDeleteUnit={handleDeleteUnit}
-              onAddLeadForProject={(projName) => {
-                setEditingLeadId(null);
-                setLeadFormInitialMode('manual');
-                setActivePage('add');
-              }}
+              users={users}
+              onSaveRecord={handleSaveTokenAgreement}
+              onDeleteRecord={handleDeleteTokenAgreement}
             />
           )}
 

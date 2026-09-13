@@ -1,6 +1,6 @@
 {
   "name": "Housing Worlds — Lead CRM",
-  "description": "Sell.Do inspired Real-Estate CRM for Developers, Projects & Unit Inventory, Channel Partners (Brokers), and Lead Management.",
+  "description": "Real-Estate CRM for Leads, Tokens & Agreements Tracking, Site Visits, Cost Sheets, Channel Partners, and Sales Follow-ups.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

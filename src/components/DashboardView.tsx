@@ -25,7 +25,7 @@ import {
   Phone,
   IndianRupee,
 } from 'lucide-react';
-import { ActivePage, Lead, CallLog, AuthUser } from '../types';
+import { ActivePage, Lead, CallLog, AuthUser, SiteVisit, TokenAgreement } from '../types';
 import {
   fmt,
   openWhatsApp,
@@ -37,10 +37,13 @@ import {
 } from '../utils/formatters';
 import { getGajTargets, getPaymentTargets } from '../utils/targets';
 import { TeamMemberDetailModal } from './TeamMemberDetailModal';
+import { DailyActivityTracker } from './DailyActivityTracker';
 
 interface DashboardViewProps {
   leads: Lead[];
   calls?: CallLog[];
+  siteVisits?: SiteVisit[];
+  tokensAgreements?: TokenAgreement[];
   currentUser?: AuthUser | null;
   users?: AuthUser[];
   onNavigate: (page: ActivePage) => void;
@@ -53,6 +56,8 @@ interface DashboardViewProps {
 export const DashboardView: React.FC<DashboardViewProps> = ({
   leads,
   calls = [],
+  siteVisits: siteVisitsList = [],
+  tokensAgreements: tokensAgreementsList = [],
   currentUser,
   users = [],
   onNavigate,
@@ -222,6 +227,49 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     (c) => c.timestamp.slice(0, 10) === todayStr
   ).length;
 
+  // Filter site visits by executive if selectedMember is active
+  const memberFilteredVisits = useMemo(() => {
+    if (!selectedMember) return siteVisitsList;
+    const q = selectedMember.toLowerCase().trim();
+    return siteVisitsList.filter(
+      (v) =>
+        (v.salesExecutive && v.salesExecutive.toLowerCase().trim() === q) ||
+        (v.telecaller && v.telecaller.toLowerCase().trim() === q)
+    );
+  }, [siteVisitsList, selectedMember]);
+
+  // Today's site visits
+  const todayVisits = useMemo(() => {
+    return memberFilteredVisits.filter((v) => {
+      const s = v.scheduledTime ? v.scheduledTime.slice(0, 10) : '';
+      const c = v.conductedTime ? v.conductedTime.slice(0, 10) : '';
+      return s === todayStr || c === todayStr;
+    });
+  }, [memberFilteredVisits, todayStr]);
+
+  const todayVisitsCount = todayVisits.length;
+  const todayConductedCount = todayVisits.filter((v) => v.status === 'Conducted').length;
+
+  // Filter tokens and agreements by executive if selectedMember is active
+  const memberFilteredTokens = useMemo(() => {
+    if (!selectedMember) return tokensAgreementsList;
+    const q = selectedMember.toLowerCase().trim();
+    return tokensAgreementsList.filter(
+      (t) => t.executiveName && t.executiveName.toLowerCase().trim() === q
+    );
+  }, [tokensAgreementsList, selectedMember]);
+
+  // Today's payment collected from tokens/agreements
+  const todayTokensCollected = useMemo(() => {
+    return memberFilteredTokens
+      .filter((t) => {
+        const pDate = t.paymentDate ? t.paymentDate.slice(0, 10) : '';
+        const cDate = t.createdAt ? t.createdAt.slice(0, 10) : '';
+        return pDate === todayStr || cDate === todayStr;
+      })
+      .reduce((sum, t) => sum + (t.tokenAmount || 0), 0);
+  }, [memberFilteredTokens, todayStr]);
+
   // Metric card definitions
   const statCards = [
     {
@@ -278,13 +326,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     {
       id: 'stat-site-visits',
-      label: 'Site Visits',
-      value: siteVisits,
-      sub: selectedMember ? `On-ground visits by ${selectedMember}` : 'On-ground plot visits',
+      label: selectedMember ? `${selectedMember}'s Site Visits` : 'Site Visits',
+      value: todayVisitsCount > 0 ? `${todayVisitsCount} Today` : siteVisits,
+      sub:
+        todayVisitsCount > 0
+          ? `${todayConductedCount} Conducted today • ${memberFilteredVisits.length} total`
+          : (selectedMember ? `On-ground visits by ${selectedMember}` : 'On-ground plot visits'),
       icon: <MapPin className="w-5 h-5 text-purple-600" />,
       bg: 'bg-purple-50/80 border-purple-200/70',
       textColor: 'text-purple-900',
-      onClick: () => onNavigate('leads'),
+      onClick: () => onNavigate('site_visits'),
     },
     {
       id: 'stat-bookings',
@@ -300,13 +351,19 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     },
     {
       id: 'stat-payment-target',
-      label: selectedMember ? `${selectedMember}'s Payment Target` : 'Payment Target & Collection',
-      value: formatINR(totalPaymentCollected, true),
-      sub: `Target: ${formatINR(totalPaymentTarget, true)} (${paymentPercentAchieved}% done)`,
+      label: selectedMember ? `${selectedMember}'s Collection` : 'Payment & Collection',
+      value:
+        todayTokensCollected > 0
+          ? `${formatINR(todayTokensCollected, true)} Today`
+          : formatINR(totalPaymentCollected, true),
+      sub:
+        todayTokensCollected > 0
+          ? `Total: ${formatINR(totalPaymentCollected, true)} • Click to open ledger`
+          : `Target: ${formatINR(totalPaymentTarget, true)} (${paymentPercentAchieved}% done)`,
       icon: <IndianRupee className="w-5 h-5 text-emerald-600" />,
       bg: 'bg-emerald-50/80 border-emerald-300/80 shadow-2xs',
       textColor: 'text-emerald-950 font-black',
-      onClick: () => onNavigate('team'),
+      onClick: () => onNavigate('tokens_agreements'),
     },
     {
       id: 'stat-calls-target',
@@ -686,6 +743,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Daily Activity Tracker: Per Day Visits & Payments Live Ledger */}
+      <DailyActivityTracker
+        siteVisits={siteVisitsList}
+        tokensAgreements={tokensAgreementsList}
+        leads={activeLeads}
+        calls={activeCalls}
+        selectedMember={selectedMember}
+        currentUser={currentUser}
+        onNavigate={onNavigate}
+        onViewLeadDetail={onViewLeadDetail}
+      />
 
       {/* Recent Leads Table Container */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">

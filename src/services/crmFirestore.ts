@@ -18,6 +18,7 @@ import {
   Broker,
   SiteVisit,
   CostSheet,
+  TokenAgreement,
 } from '../types';
 
 // Helper to remove undefined values before sending to Firestore
@@ -40,6 +41,7 @@ const BROKERS_COLLECTION = 'brokers';
 const UNITS_COLLECTION = 'units';
 const SITE_VISITS_COLLECTION = 'site_visits';
 const COST_SHEETS_COLLECTION = 'cost_sheets';
+const TOKENS_AGREEMENTS_COLLECTION = 'tokens_agreements';
 
 /**
  * Listen for real-time updates to users collection.
@@ -448,7 +450,8 @@ export async function seedRealEstateIfEmpty(
   initialUnits: ProjectUnit[],
   initialBrokers: Broker[],
   initialVisits?: SiteVisit[],
-  initialSheets?: CostSheet[]
+  initialSheets?: CostSheet[],
+  initialTokens?: TokenAgreement[]
 ): Promise<void> {
   try {
     const devSnap = await getDocs(collection(db, DEVELOPERS_COLLECTION));
@@ -487,6 +490,13 @@ export async function seedRealEstateIfEmpty(
         initialSheets.forEach((cs) => {
           const ref = doc(db, COST_SHEETS_COLLECTION, cs.id);
           batch.set(ref, cleanObject(cs));
+        });
+      }
+
+      if (initialTokens && initialTokens.length > 0) {
+        initialTokens.forEach((tk) => {
+          const ref = doc(db, TOKENS_AGREEMENTS_COLLECTION, tk.id);
+          batch.set(ref, cleanObject(tk));
         });
       }
 
@@ -580,5 +590,52 @@ export async function deleteCostSheetFromCloud(id: string): Promise<void> {
   const sheetRef = doc(db, COST_SHEETS_COLLECTION, id);
   await deleteDoc(sheetRef);
 }
+
+// ==========================================
+// TOKENS & AGREEMENTS (BOOKING TOKENS / BBA)
+// ==========================================
+
+/**
+ * Listen for real-time updates to tokens_agreements collection.
+ */
+export function subscribeToTokensAgreements(
+  onData: (records: TokenAgreement[]) => void,
+  onError?: (error: Error) => void
+) {
+  const ref = collection(db, TOKENS_AGREEMENTS_COLLECTION);
+  return onSnapshot(
+    ref,
+    (snapshot) => {
+      const records: TokenAgreement[] = [];
+      snapshot.forEach((docSnap) => {
+        records.push(docSnap.data() as TokenAgreement);
+      });
+      // Sort newest payment date or created date first
+      records.sort((a, b) => new Date(b.createdAt || b.paymentDate).getTime() - new Date(a.createdAt || a.paymentDate).getTime());
+      onData(records);
+    },
+    (err) => {
+      console.error('Error listening to tokens_agreements:', err);
+      if (onError) onError(err);
+    }
+  );
+}
+
+/**
+ * Save or update a token or agreement record in Firestore.
+ */
+export async function saveTokenAgreementToCloud(record: TokenAgreement): Promise<void> {
+  const recordRef = doc(db, TOKENS_AGREEMENTS_COLLECTION, record.id);
+  await setDoc(recordRef, cleanObject(record), { merge: true });
+}
+
+/**
+ * Delete a token or agreement record from Firestore.
+ */
+export async function deleteTokenAgreementFromCloud(id: string): Promise<void> {
+  const recordRef = doc(db, TOKENS_AGREEMENTS_COLLECTION, id);
+  await deleteDoc(recordRef);
+}
+
 
 

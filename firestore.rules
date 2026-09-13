@@ -28,5 +28,8 @@ service cloud.firestore {
     match /cost_sheets/{sheetId} {
       allow read, write: if true;
     }
+    match /tokens_agreements/{recordId} {
+      allow read, write: if true;
+    }
   }
 }

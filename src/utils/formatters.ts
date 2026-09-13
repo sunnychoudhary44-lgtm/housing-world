@@ -84,6 +84,9 @@ export function formatINR(amount: number, compact = false): string {
   return '₹' + Math.round(amount).toLocaleString('en-IN');
 }
 
+export const formatCurrency = (amt: number, compact = false): string => formatINR(amt, compact);
+export const formatIndianDate = (dateStr?: string): string => fmtDateOnly(dateStr);
+
 export function getLeadPaymentReceived(lead: Lead): number {
   if (typeof lead.paymentReceived === 'number' && !isNaN(lead.paymentReceived)) {
     return lead.paymentReceived;
